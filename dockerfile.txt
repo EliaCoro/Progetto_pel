@@ -1,0 +1,7 @@
+#dentro al container il progetto si trova dentro ad /app
+
+docker run -d \
+  -it \
+  --name devtest \
+  -v /your_path:/app \
+  danger89/cmake
