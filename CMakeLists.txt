@@ -3,4 +3,4 @@ project(Progetto_pel)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Progetto_pel main.cpp play.cpp player/player.hpp verify.cpp)
+add_executable(Progetto_pel play.cpp player/player.hpp verify.cpp)
