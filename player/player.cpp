@@ -50,6 +50,13 @@ Player::~Player(){
 }
 
 Player::Player(const Player& player){
+    this->pimpl = new Impl;
+    this->pimpl->player_nr = player.pimpl->player_nr;
+    this->pimpl->history = new History;
+    this->pimpl->history->head = nullptr;
+    this->pimpl->history->tail = nullptr;
+
+
 
 }
 
