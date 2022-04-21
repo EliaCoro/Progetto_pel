@@ -1,13 +1,21 @@
 //
 // Created by Elia Corò on 20/04/22.
 //
-
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <stdlib.h>
 #include "player.hpp"
+using namespace std;
 
-int playground_height = 7, playground_width = 7;
+#define playground_height 7
+#define playground_width 7
+
+
 
 struct Cell{
-    char playground[7][7];
+    int index;
+    char playground[playground_height][playground_width];
     Cell* next;
 };
 
@@ -36,15 +44,14 @@ Player::Player(int player_nr){
 };
 
 Player::~Player(){
-    //Todo: verificare
-    /*if(this->pimpl->history->head || this->pimpl->history->tail){
+    if(this->pimpl->history->head || this->pimpl->history->tail){
         Cell* pc = this->pimpl->history->head;
         while(pc){
             this->pimpl->history->head->next;
             delete pc;
             pc = this->pimpl->history->head;
         }
-    }*/
+    }
     delete pimpl->history;
     delete pimpl;
 }
@@ -55,8 +62,6 @@ Player::Player(const Player& player){
     this->pimpl->history = new History;
     this->pimpl->history->head = nullptr;
     this->pimpl->history->tail = nullptr;
-
-
 
 }
 
@@ -69,7 +74,15 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
 }
 
 void Player::load_board(const string& filename){
-
+    ifstream file{filename};
+    char playground[playground_height][playground_width];
+    int i = 0;
+    while(file.good()) {
+        string s;
+        getline(file, s);
+        cout<<s<<endl;
+        i++;
+    }
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
