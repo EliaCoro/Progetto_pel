@@ -18,9 +18,9 @@ struct History{
 };
 
 struct Player::Impl{
-    int player_nr{};
-    char pieces {};
-    History history{};
+    int player_nr;
+    char pieces;
+    History* history;
 };
 
 Player::Player(int player_nr){
@@ -28,7 +28,7 @@ Player::Player(int player_nr){
     if(player_nr == 1 || player_nr == 2){
         this->pimpl = new Impl;
         this->pimpl->player_nr = player_nr;
-        this->pimpl->history = *new History{nullptr, nullptr, 0};
+        this->pimpl->history = new History{nullptr, nullptr, 0};
     }else{
         //TODO: controllare se lanciare l'eccezione in questo modo è corretto
         throw player_exception{player_exception::err_type(0), "Invalid Player_nr"};
@@ -37,16 +37,16 @@ Player::Player(int player_nr){
 
 Player::~Player(){
     //Todo: verificare
-    if(this->pimpl->history.head || this->pimpl->history.tail){
-        Cell* pc = this->pimpl->history.head;
+    /*if(this->pimpl->history->head || this->pimpl->history->tail){
+        Cell* pc = this->pimpl->history->head;
         while(pc){
-            this->pimpl->history.head->next;
+            this->pimpl->history->head->next;
             delete pc;
-            pc = this->pimpl->history.head;
+            pc = this->pimpl->history->head;
         }
-    }
-    delete pimpl->history.head;
-    delete pimpl->history.tail;
+    }*/
+    delete pimpl->history;
+    delete pimpl;
 }
 
 Player::Player(const Player& player){
