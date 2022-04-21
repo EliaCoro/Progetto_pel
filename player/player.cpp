@@ -4,16 +4,49 @@
 
 #include "player.hpp"
 
-struct Player::Impl{
+int playground_height = 7, playground_width = 7;
 
+struct Cell{
+    char playground[7][7];
+    Cell* next;
+};
+
+struct History{
+    Cell* head;
+    Cell* tail;
+    int playground_number;
+};
+
+struct Player::Impl{
+    int player_nr{};
+    char pieces {};
+    History history{};
 };
 
 Player::Player(int player_nr){
 
+    if(player_nr == 1 || player_nr == 2){
+        this->pimpl = new Impl;
+        this->pimpl->player_nr = player_nr;
+        this->pimpl->history = *new History{nullptr, nullptr, 0};
+    }else{
+        //TODO: controllare se lanciare l'eccezione in questo modo è corretto
+        throw player_exception{player_exception::err_type(0), "Invalid Player_nr"};
+    }
 };
 
 Player::~Player(){
-
+    //Todo: verificare
+    if(this->pimpl->history.head || this->pimpl->history.tail){
+        Cell* pc = this->pimpl->history.head;
+        while(pc){
+            this->pimpl->history.head->next;
+            delete pc;
+            pc = this->pimpl->history.head;
+        }
+    }
+    delete pimpl->history.head;
+    delete pimpl->history.tail;
 }
 
 Player::Player(const Player& player){
@@ -53,6 +86,14 @@ void Player::pop(){
 }
 
 bool Player::wins(int player_nr)const{
+
+}
+
+bool Player::wins() const{
+
+}
+
+bool Player::loses(int player_nr)const{
 
 }
 
