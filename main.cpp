@@ -5,5 +5,6 @@ int main(){
     Player one(1);
     Player two(2);
     one.load_board(path+"board_1.txt");
+    one.load_board(path+"board_2.txt");
     cout<<"finished"<<endl;
 }

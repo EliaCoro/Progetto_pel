@@ -8,8 +8,8 @@
 #include "player.hpp"
 using namespace std;
 
-#define playground_height 7
-#define playground_width 7
+#define playground_height 8
+#define playground_width 8
 
 
 
@@ -44,13 +44,14 @@ Player::Player(int player_nr){
 };
 
 Player::~Player(){
-    if(this->pimpl->history->head || this->pimpl->history->tail){
+    if(this->pimpl->history->head != nullptr){
         Cell* pc = this->pimpl->history->head;
-        while(pc){
-            this->pimpl->history->head->next;
+        while(this->pimpl->history->head != nullptr){
+            this->pimpl->history->head = this->pimpl->history->head->next;
             delete pc;
             pc = this->pimpl->history->head;
         }
+        this->pimpl->history->tail = nullptr;
     }
     delete pimpl->history;
     delete pimpl;
@@ -73,16 +74,61 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
 
 }
 
+void Player::printPlayground(){
+    Cell* pc = this->pimpl->history->head;
+    int counter = 0;
+    while(pc){
+        cout<<"Playground nr: " <<counter++<<endl;
+        for (int i = 0; i < 8; ++i){
+            for (int j = 0; j < 8; ++j)
+                cout<<pc->playground[i][j]<<" ";
+            cout<<endl;
+        }
+        cout<<endl<<endl<<endl;
+        pc = pc->next;
+
+    }
+}
+
+
+void Player::new_cell_history(char matrix[8][8]) {
+    Cell *nc = new Cell;
+    nc->next = nullptr;
+    if (this->pimpl->history->head == nullptr) {
+        this->pimpl->history->head = nc;
+        this->pimpl->history->tail = nc;
+    } else {
+        this->pimpl->history->tail->next = nc;
+        this->pimpl->history->tail = nc;
+    }
+    this->pimpl->history->playground_number = this->pimpl->history->playground_number + 1;
+
+    for (int i = 0; i < 8; ++i)
+        for (int j = 0; j < 8; ++j)
+            if (matrix[i][j] != 0)
+                nc->playground[i][j] = matrix[i][j];
+            else
+                nc->playground[i][j] = 'e';
+}
+
 void Player::load_board(const string& filename){
     ifstream file{filename};
     char playground[playground_height][playground_width];
     int i = 0;
+
     while(file.good()) {
         string s;
         getline(file, s);
-        cout<<s<<endl;
+        for (int j = 0; j < s.size(); j=j+2) {
+            //TODO: controllare questione enum
+            if(s.at(j) == ' ')
+                playground[i][j/2] = 'e';
+            else
+                playground[i][j/2] = s.at(j);
+        }
         i++;
     }
+    this->new_cell_history(playground);
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
