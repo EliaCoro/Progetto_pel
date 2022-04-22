@@ -81,7 +81,10 @@ void Player::printPlayground(){
         cout<<"Playground nr: " <<counter++<<endl;
         for (int i = 0; i < 8; ++i){
             for (int j = 0; j < 8; ++j)
-                cout<<pc->playground[i][j]<<" ";
+                if(pc->playground[i][j] == 'e')
+                    cout<<"  ";
+                else
+                    cout<<pc->playground[i][j]<<" ";
             cout<<endl;
         }
         cout<<endl<<endl<<endl;
@@ -129,6 +132,7 @@ void Player::load_board(const string& filename){
         i++;
     }
     this->new_cell_history(playground);
+    this->printPlayground();
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
@@ -136,7 +140,20 @@ void Player::store_board(const string& filename, int history_offset) const{
 }
 
 void Player::init_board(const string& filename)const{
+    //manage error
 
+    string board = "o   o   o   o  \n"
+                   "  o   o   o   o\n"
+                   "o   o   o   o  \n"
+                   "               \n"
+                   "               \n"
+                   "  x   x   x   x\n"
+                   "x   x   x   x  \n"
+                   "  x   x   x   x";
+
+    ofstream file(filename);
+    file << board;
+    file.close();
 }
 
 void Player::move(){
