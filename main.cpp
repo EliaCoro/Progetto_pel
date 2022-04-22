@@ -3,9 +3,13 @@ string path ="../board/";
 
 int main(){
     Player one(1);
-    Player two(2);
-    one.init_board(path+"board_1.txt");
+    //one.init_board(path+"board_1.txt");
     one.load_board(path+"board_1.txt");
     one.load_board(path+"board_2.txt");
+    Player two(one);
+
+    //one.print_playground();
+    two.print_playground();
+
     cout<<"finished"<<endl;
 }

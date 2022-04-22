@@ -1,21 +1,16 @@
-//
-// Created by Elia Corò on 20/04/22.
-//
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <stdlib.h>
 #include "player.hpp"
+
 using namespace std;
 
-#define playground_height 8
-#define playground_width 8
-
-
+#define playground_size 8
 
 struct Cell{
     int index;
-    char playground[playground_height][playground_width];
+    char playground[playground_size][playground_size];
     Cell* next;
 };
 
@@ -58,29 +53,35 @@ Player::~Player(){
 }
 
 Player::Player(const Player& player){
+    *this = player;
+}
+
+Player& Player::operator=(const Player& player){
+    //delete this; //not working
     this->pimpl = new Impl;
     this->pimpl->player_nr = player.pimpl->player_nr;
     this->pimpl->history = new History;
     this->pimpl->history->head = nullptr;
     this->pimpl->history->tail = nullptr;
-
-}
-
-Player& Player::operator=(const Player& player){
-
+    Cell* pc = player.pimpl->history->head;
+    while(pc){
+        this->new_cell_history(pc->playground);
+        pc = pc->next;
+    }
+    return *this;
 }
 
 Player::piece Player::operator()(int r, int c, int history_offset)const{
 
 }
 
-void Player::printPlayground(){
+void Player::print_playground(){
     Cell* pc = this->pimpl->history->head;
     int counter = 0;
     while(pc){
         cout<<"Playground nr: " <<counter++<<endl;
-        for (int i = 0; i < 8; ++i){
-            for (int j = 0; j < 8; ++j)
+        for (int i = 0; i < playground_size; ++i){
+            for (int j = 0; j < playground_size; ++j)
                 if(pc->playground[i][j] == 'e')
                     cout<<"  ";
                 else
@@ -94,7 +95,7 @@ void Player::printPlayground(){
 }
 
 
-void Player::new_cell_history(char matrix[8][8]) {
+void Player::new_cell_history(char matrix[playground_size][playground_size]) {
     Cell *nc = new Cell;
     nc->next = nullptr;
     if (this->pimpl->history->head == nullptr) {
@@ -106,8 +107,8 @@ void Player::new_cell_history(char matrix[8][8]) {
     }
     this->pimpl->history->playground_number = this->pimpl->history->playground_number + 1;
 
-    for (int i = 0; i < 8; ++i)
-        for (int j = 0; j < 8; ++j)
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
             if (matrix[i][j] != 0)
                 nc->playground[i][j] = matrix[i][j];
             else
@@ -116,7 +117,7 @@ void Player::new_cell_history(char matrix[8][8]) {
 
 void Player::load_board(const string& filename){
     ifstream file{filename};
-    char playground[playground_height][playground_width];
+    char playground[playground_size][playground_size];
     int i = 0;
 
     while(file.good()) {
@@ -132,7 +133,6 @@ void Player::load_board(const string& filename){
         i++;
     }
     this->new_cell_history(playground);
-    this->printPlayground();
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
@@ -140,7 +140,7 @@ void Player::store_board(const string& filename, int history_offset) const{
 }
 
 void Player::init_board(const string& filename)const{
-    //manage error
+    //todo: manage error
 
     string board = "o   o   o   o  \n"
                    "  o   o   o   o\n"

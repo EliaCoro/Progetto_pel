@@ -94,5 +94,5 @@ private:
     struct Impl;
     Impl* pimpl;
     void new_cell_history(char matrix[8][8]);
-    void printPlayground();
+    void print_playground();
 };
