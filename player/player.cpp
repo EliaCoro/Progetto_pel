@@ -27,7 +27,6 @@ struct Player::Impl{
 };
 
 Player::Player(int player_nr){
-
     if(player_nr == 1 || player_nr == 2){
         this->pimpl = new Impl;
         this->pimpl->player_nr = player_nr;
@@ -38,18 +37,24 @@ Player::Player(int player_nr){
     }
 };
 
-Player::~Player(){
-    if(this->pimpl->history->head != nullptr){
-        Cell* pc = this->pimpl->history->head;
-        while(this->pimpl->history->head != nullptr){
+void Player::delete_history(){
+    if (this->pimpl != nullptr && this->pimpl->history->head != nullptr) {
+        Cell *pc = this->pimpl->history->head;
+        while (this->pimpl->history->head != nullptr) {
             this->pimpl->history->head = this->pimpl->history->head->next;
             delete pc;
             pc = this->pimpl->history->head;
         }
         this->pimpl->history->tail = nullptr;
     }
-    delete pimpl->history;
-    delete pimpl;
+}
+
+Player::~Player(){
+    if(this->pimpl != nullptr) {
+        this->delete_history();
+        delete pimpl->history;
+        delete pimpl;
+    }
 }
 
 Player::Player(const Player& player){
@@ -57,7 +62,9 @@ Player::Player(const Player& player){
 }
 
 Player& Player::operator=(const Player& player){
-    //delete this; //not working
+    //delete this;  //not working
+    this->delete_history();
+    new Player(1);
     this->pimpl = new Impl;
     this->pimpl->player_nr = player.pimpl->player_nr;
     this->pimpl->history = new History;
@@ -115,14 +122,36 @@ void Player::new_cell_history(char matrix[playground_size][playground_size]) {
                 nc->playground[i][j] = 'e';
 }
 
+bool correct_playground(char matrix[playground_size][playground_size]){
+    int x = 0, o = 0, e = 0;
+    bool correct = true;
+    for (int i = 0; i < playground_size; ++i) {
+        for (int j = 0; j < playground_size; ++j) {
+            if(matrix[i][j] == 'x' || matrix[i][j] == 'X')
+                x++;
+            else if(matrix[i][j] == 'o' || matrix[i][j] == 'O')
+                o++;
+            else if(matrix[i][j] == 'e')
+                e++;
+            else
+                correct = false;
+        }
+    }
+    return correct && x <= 12 && o <= 12;
+}
+
 void Player::load_board(const string& filename){
     ifstream file{filename};
+    if (!file.good())
+        throw player_exception{player_exception::err_type(1), "Missing file: "+filename};
+
     char playground[playground_size][playground_size];
     int i = 0;
-
     while(file.good()) {
         string s;
         getline(file, s);
+        if(s.size() != 15)
+            throw player_exception{player_exception::err_type(2), "Invalid board"};
         for (int j = 0; j < s.size(); j=j+2) {
             //TODO: controllare questione enum
             if(s.at(j) == ' ')
@@ -132,7 +161,14 @@ void Player::load_board(const string& filename){
         }
         i++;
     }
-    this->new_cell_history(playground);
+    if (!file.eof())
+        throw player_exception{player_exception::err_type(2),"We should be at the end of the file, but we are not"};
+
+
+    if(correct_playground(playground))
+        this->new_cell_history(playground);
+    else
+        throw player_exception{player_exception::err_type(2), "Invalid board"};
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
@@ -140,8 +176,6 @@ void Player::store_board(const string& filename, int history_offset) const{
 }
 
 void Player::init_board(const string& filename)const{
-    //todo: manage error
-
     string board = "o   o   o   o  \n"
                    "  o   o   o   o\n"
                    "o   o   o   o  \n"
@@ -150,10 +184,13 @@ void Player::init_board(const string& filename)const{
                    "  x   x   x   x\n"
                    "x   x   x   x  \n"
                    "  x   x   x   x";
-
     ofstream file(filename);
     file << board;
+    if(!file.good())
+        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
     file.close();
+    if(file.fail())
+        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
 
 void Player::move(){
