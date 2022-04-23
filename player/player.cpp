@@ -38,7 +38,7 @@ Player::piece Player::from_char_to_enum(char c){
     }
 }
 
-char Player::from_enum_to_char(Player::piece p){
+char Player::from_enum_to_char(Player::piece p) const {
     switch(p){
         case x: return 'x';
         case X: return 'X';
@@ -102,7 +102,7 @@ Player& Player::operator=(const Player& player){
 }
 
 Player::piece Player::operator()(int r, int c, int history_offset)const{
-    if(!(r > 0 && r <= playground_size && c > 0 && c <= playground_size))
+    if(!(r >= 0 && r < playground_size && c >= 0 && c < playground_size))
         throw player_exception{player_exception::err_type(0), "Invalid coordinates"};
 
     Cell* pc = this->pimpl->history->tail;
@@ -111,7 +111,9 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
         if(pc == nullptr)
             throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
     }
-    //return pc->playground[r][c];
+    piece pezzo = pc->playground[r][c];
+    cout << from_enum_to_char(pezzo)<<endl;
+    return pezzo;
 }
 
 void Player::print_playground(){

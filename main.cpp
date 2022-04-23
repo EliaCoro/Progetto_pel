@@ -11,6 +11,5 @@ int main(){
     //one.print_playground();
     two.print_playground();
 
-
     cout<<"finished"<<endl;
 }

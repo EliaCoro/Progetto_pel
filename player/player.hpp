@@ -96,7 +96,7 @@ private:
 
 public:
     piece from_char_to_enum(char c);
-    char from_enum_to_char(piece p);
+    char from_enum_to_char(piece p) const;
     bool correct_playground(piece matrix[8][8]);
     void delete_history();
     void new_cell_history(piece matrix[8][8]);
