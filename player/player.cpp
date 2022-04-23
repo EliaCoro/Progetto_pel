@@ -106,6 +106,9 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
         throw player_exception{player_exception::err_type(0), "Invalid coordinates"};
 
     Cell* pc = this->pimpl->history->tail;
+    if(pc == nullptr)
+        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+
     for (int i = 0; i < history_offset; ++i) {
         pc = pc->prev;
         if(pc == nullptr)
@@ -197,8 +200,31 @@ void Player::load_board(const string& filename){
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
+    //controllare se funziona
+    ofstream file(filename);
+    Cell* pc = this->pimpl->history->tail;
+    if(pc == nullptr)
+        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
 
+    for (int i = 0; i < history_offset; ++i) {
+        pc = pc->prev;
+        if(pc == nullptr)
+            throw player_exception{player_exception::err_type(0), "Invalid board"};
+    }
+    for (int i = 0; i < playground_size; ++i) {
+        for (int j = 0; j < playground_size; ++j) {
+            file << from_enum_to_char(pc->playground[i][j]);
+        }
+        file << endl;
+    }
+
+    if(!file.good())
+        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
+    file.close();
+    if(file.fail())
+        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
+
 
 void Player::init_board(const string& filename)const{
     string board = "o   o   o   o  \n"
