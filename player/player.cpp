@@ -10,7 +10,8 @@ using namespace std;
 
 struct Cell{
     int index;
-    char playground[playground_size][playground_size];
+    Player::piece playground[playground_size][playground_size];
+    Cell* prev;
     Cell* next;
 };
 
@@ -25,6 +26,28 @@ struct Player::Impl{
     char pieces;
     History* history;
 };
+
+Player::piece Player::from_char_to_enum(char c){
+    switch(c){
+        case 'x': return x;
+        case 'X': return X;
+        case 'o': return o;
+        case 'O': return O;
+        case ' ': return e;
+        default: throw "Invalid char";
+    }
+}
+
+char Player::from_enum_to_char(Player::piece p){
+    switch(p){
+        case x: return 'x';
+        case X: return 'X';
+        case o: return'o';
+        case O: return 'O';
+        case e: return ' ';
+        default: throw "Invalid enum";
+    }
+}
 
 Player::Player(int player_nr){
     if(player_nr == 1 || player_nr == 2){
@@ -79,7 +102,16 @@ Player& Player::operator=(const Player& player){
 }
 
 Player::piece Player::operator()(int r, int c, int history_offset)const{
+    if(!(r > 0 && r <= playground_size && c > 0 && c <= playground_size))
+        throw player_exception{player_exception::err_type(0), "Invalid coordinates"};
 
+    Cell* pc = this->pimpl->history->tail;
+    for (int i = 0; i < history_offset; ++i) {
+        pc = pc->prev;
+        if(pc == nullptr)
+            throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+    }
+    //return pc->playground[r][c];
 }
 
 void Player::print_playground(){
@@ -89,10 +121,7 @@ void Player::print_playground(){
         cout<<"Playground nr: " <<counter++<<endl;
         for (int i = 0; i < playground_size; ++i){
             for (int j = 0; j < playground_size; ++j)
-                if(pc->playground[i][j] == 'e')
-                    cout<<"  ";
-                else
-                    cout<<pc->playground[i][j]<<" ";
+                cout<<from_enum_to_char(pc->playground[i][j])<<" ";
             cout<<endl;
         }
         cout<<endl<<endl<<endl;
@@ -102,9 +131,10 @@ void Player::print_playground(){
 }
 
 
-void Player::new_cell_history(char matrix[playground_size][playground_size]) {
+void Player::new_cell_history(Player::piece matrix[playground_size][playground_size]) {
     Cell *nc = new Cell;
     nc->next = nullptr;
+    nc->prev = this->pimpl->history->tail;
     if (this->pimpl->history->head == nullptr) {
         this->pimpl->history->head = nc;
         this->pimpl->history->tail = nc;
@@ -116,28 +146,26 @@ void Player::new_cell_history(char matrix[playground_size][playground_size]) {
 
     for (int i = 0; i < playground_size; ++i)
         for (int j = 0; j < playground_size; ++j)
-            if (matrix[i][j] != 0)
-                nc->playground[i][j] = matrix[i][j];
-            else
-                nc->playground[i][j] = 'e';
+            nc->playground[i][j] = matrix[i][j];
 }
 
-bool correct_playground(char matrix[playground_size][playground_size]){
-    int x = 0, o = 0, e = 0;
+bool Player::correct_playground(Player::piece matrix[playground_size][playground_size]){
+    int count_x = 0, count_o = 0, count_e = 0;
     bool correct = true;
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j) {
-            if(matrix[i][j] == 'x' || matrix[i][j] == 'X')
-                x++;
-            else if(matrix[i][j] == 'o' || matrix[i][j] == 'O')
-                o++;
-            else if(matrix[i][j] == 'e')
-                e++;
+            piece temp = matrix[i][j];
+            if(matrix[i][j] == x || matrix[i][j] == X)
+                count_x++;
+            else if(matrix[i][j] == o || matrix[i][j] == O)
+                count_o++;
+            else if(matrix[i][j] == e)
+                count_e++;
             else
                 correct = false;
         }
     }
-    return correct && x <= 12 && o <= 12;
+    return correct && count_x <= 12 && count_o <= 12;
 }
 
 void Player::load_board(const string& filename){
@@ -145,7 +173,7 @@ void Player::load_board(const string& filename){
     if (!file.good())
         throw player_exception{player_exception::err_type(1), "Missing file: "+filename};
 
-    char playground[playground_size][playground_size];
+    Player::piece playground[playground_size][playground_size];
     int i = 0;
     while(file.good()) {
         string s;
@@ -153,17 +181,12 @@ void Player::load_board(const string& filename){
         if(s.size() != 15)
             throw player_exception{player_exception::err_type(2), "Invalid board"};
         for (int j = 0; j < s.size(); j=j+2) {
-            //TODO: controllare questione enum
-            if(s.at(j) == ' ')
-                playground[i][j/2] = 'e';
-            else
-                playground[i][j/2] = s.at(j);
+            playground[i][j/2] = from_char_to_enum(s.at(j));
         }
         i++;
     }
     if (!file.eof())
         throw player_exception{player_exception::err_type(2),"We should be at the end of the file, but we are not"};
-
 
     if(correct_playground(playground))
         this->new_cell_history(playground);

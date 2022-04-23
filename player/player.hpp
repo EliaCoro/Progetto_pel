@@ -95,7 +95,10 @@ private:
     Impl* pimpl;
 
 public:
+    piece from_char_to_enum(char c);
+    char from_enum_to_char(piece p);
+    bool correct_playground(piece matrix[8][8]);
     void delete_history();
-    void new_cell_history(char matrix[8][8]);
+    void new_cell_history(piece matrix[8][8]);
     void print_playground();
 };
