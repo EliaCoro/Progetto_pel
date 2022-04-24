@@ -214,6 +214,7 @@ void Player::store_board(const string& filename, int history_offset) const{
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j) {
             file << from_enum_to_char(pc->playground[i][j]);
+            file << " ";
         }
         file << endl;
     }
