@@ -55,7 +55,6 @@ Player::Player(int player_nr){
         this->pimpl->player_nr = player_nr;
         this->pimpl->history = new History{nullptr, nullptr, 0};
     }else{
-        //TODO: controllare se lanciare l'eccezione in questo modo è corretto
         throw player_exception{player_exception::err_type(0), "Invalid Player_nr"};
     }
 };
@@ -131,7 +130,6 @@ void Player::print_playground(){
         }
         cout<<endl<<endl<<endl;
         pc = pc->next;
-
     }
 }
 
@@ -200,7 +198,6 @@ void Player::load_board(const string& filename){
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
-    //controllare se funziona
     ofstream file(filename);
     Cell* pc = this->pimpl->history->tail;
     if(pc == nullptr)
@@ -245,6 +242,7 @@ void Player::init_board(const string& filename)const{
         throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
 
+
 void Player::move(){
 
 }
@@ -254,7 +252,20 @@ bool Player::valid_move() const{
 }
 
 void Player::pop(){
-
+    //controllare se funziona il metodo
+    if(this->pimpl->history->tail != nullptr){
+        Cell *temp = this->pimpl->history->tail;
+        if(this->pimpl->history->head == this->pimpl->history->tail){
+            temp = this->pimpl->history->tail;
+            this->pimpl->history->head = nullptr;
+            this->pimpl->history->tail = nullptr;
+        }else {
+            this->pimpl->history->tail = this->pimpl->history->tail->prev;
+            this->pimpl->history->tail->next = nullptr;
+        }
+        delete temp;
+    } else
+        throw player_exception{player_exception::err_type(0), "history empty"};
 }
 
 bool Player::wins(int player_nr)const{

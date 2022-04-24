@@ -10,6 +10,10 @@ int main(){
 
     //one.print_playground();
     two.print_playground();
-
+    two.pop();
+    two.print_playground();
+    two.pop();
+    two.print_playground();
+    two.pop();
     cout<<"finished"<<endl;
 }
