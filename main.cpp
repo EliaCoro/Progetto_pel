@@ -8,12 +8,7 @@ int main(){
     one.load_board(path+"board_2.txt");
     Player two(one);
 
+    two.move();
     //one.print_playground();
-    two.print_playground();
-    two.pop();
-    two.print_playground();
-    two.pop();
-    two.print_playground();
-    two.pop();
     cout<<"finished"<<endl;
 }

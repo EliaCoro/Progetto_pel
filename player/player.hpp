@@ -95,6 +95,14 @@ private:
     Impl* pimpl;
 
 public:
+    struct Cell;
+    enum directions{
+        top_left,
+        top_right,
+        bottom_left,
+        bottom_right
+    };
+    Cell* move_pawn(piece matrix[8][8], int r, int c, directions direction);
     piece from_char_to_enum(char c);
     char from_enum_to_char(piece p) const;
     bool correct_playground(piece matrix[8][8]);

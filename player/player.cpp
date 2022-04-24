@@ -8,7 +8,7 @@ using namespace std;
 
 #define playground_size 8
 
-struct Cell{
+struct Player::Cell{
     int index;
     Player::piece playground[playground_size][playground_size];
     Cell* prev;
@@ -16,8 +16,8 @@ struct Cell{
 };
 
 struct History{
-    Cell* head;
-    Cell* tail;
+    Player::Cell* head;
+    Player::Cell* tail;
     int playground_number;
 };
 
@@ -133,7 +133,6 @@ void Player::print_playground(){
     }
 }
 
-
 void Player::new_cell_history(Player::piece matrix[playground_size][playground_size]) {
     Cell *nc = new Cell;
     nc->next = nullptr;
@@ -242,8 +241,45 @@ void Player::init_board(const string& filename)const{
         throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
 
+Player::Cell* move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::directions direction){
+    Player::Cell* res = new Player::Cell;
+    res->next = nullptr;
+    res->prev = nullptr;
+    res->index = 0;
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            res->playground[i][j] = matrix[i][j];
+
+
+    switch(direction){
+        case Player::top_left:
+            if(r + 1 < playground_size && c - 1 >= 0){
+
+            }
+            break;
+        case Player::top_right:
+            if(r + 1 < playground_size && c + 1 < playground_size){
+
+            }
+            break;
+        case Player::bottom_left:
+            if(r - 1 >= 0 && c - 1 >= 0){
+
+            }
+            break;
+        case Player::bottom_right:
+            if(r - 1 >= 0 && c + 1 < playground_size){
+
+            }
+            break;
+        default:
+            throw "Invalid direction: " + direction;
+    }
+
+}
 
 void Player::move(){
+    //il giocatore 1 deve muovere solo le x e il giocatore 2 solo le o
 
 }
 
@@ -252,7 +288,6 @@ bool Player::valid_move() const{
 }
 
 void Player::pop(){
-    //controllare se funziona il metodo
     if(this->pimpl->history->tail != nullptr){
         Cell *temp = this->pimpl->history->tail;
         if(this->pimpl->history->head == this->pimpl->history->tail){
