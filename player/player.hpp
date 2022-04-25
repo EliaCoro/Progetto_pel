@@ -102,6 +102,7 @@ public:
         bottom_left,
         bottom_right
     };
+    int new_coordinates(char p, int r, int c, directions direction);
     Cell* move_pawn(piece matrix[8][8], int r, int c, directions direction);
     piece from_char_to_enum(char c);
     char from_enum_to_char(piece p) const;

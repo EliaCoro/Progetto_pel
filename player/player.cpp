@@ -85,7 +85,7 @@ Player::Player(const Player& player){
 
 Player& Player::operator=(const Player& player){
     //delete this;  //not working
-    this->delete_history();
+    //this->delete_history();   //not working
     new Player(1);
     this->pimpl = new Impl;
     this->pimpl->player_nr = player.pimpl->player_nr;
@@ -241,46 +241,74 @@ void Player::init_board(const string& filename)const{
         throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
 
-Player::Cell* move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::directions direction){
-    Player::Cell* res = new Player::Cell;
-    res->next = nullptr;
-    res->prev = nullptr;
-    res->index = 0;
-    for (int i = 0; i < playground_size; ++i)
-        for (int j = 0; j < playground_size; ++j)
-            res->playground[i][j] = matrix[i][j];
-
-
-    switch(direction){
-        case Player::top_left:
-            if(r + 1 < playground_size && c - 1 >= 0){
-
-            }
+int Player::new_coordinates(char p, int r, int c, directions direction) {
+    int res;
+    switch (direction) {
+        case top_left:
+            if(p == 'r')
+                res = r - 1;
+            else if (p == 'c')
+                res = c - 1;
             break;
-        case Player::top_right:
-            if(r + 1 < playground_size && c + 1 < playground_size){
-
-            }
+        case top_right:
+            if(p == 'r')
+                res = r - 1;
+            else if (p == 'c')
+                res = c + 1;
             break;
-        case Player::bottom_left:
-            if(r - 1 >= 0 && c - 1 >= 0){
-
-            }
+        case bottom_left:
+            if(p == 'r')
+                res = r + 1;
+            else if (p == 'c')
+                res = c - 1;
             break;
-        case Player::bottom_right:
-            if(r - 1 >= 0 && c + 1 < playground_size){
-
-            }
+        case bottom_right:
+            if(p == 'r')
+                res = r + 1;
+            else if (p == 'c')
+                res = c + 1;
             break;
-        default:
-            throw "Invalid direction: " + direction;
     }
+    if(res >= 0 && res < playground_size)
+        return res;
+    else
+        return -1;
+}
 
+
+//la funzione ritorna nullptr se il movimento non è consentito.
+Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::directions direction){
+    Player::Cell* res;
+    int new_r = new_coordinates('r', r, c, direction), new_c = new_coordinates('c', r, c, direction);
+    if(matrix[r][c] != e && new_r != -1 && new_c != -1){
+        res = new Player::Cell;
+        res->next = nullptr;
+        res->prev = nullptr;
+        res->index = 0;
+        for (int i = 0; i < playground_size; ++i)
+            for (int j = 0; j < playground_size; ++j)
+                res->playground[i][j] = matrix[i][j];
+
+        if(matrix[new_r][new_c] == e){
+            res->playground[new_r][new_c] = res->playground[r][c];
+            res->playground[r][c] = e;
+        }else{
+            //dio cane
+        }
+
+    }
+    return res;
 }
 
 void Player::move(){
     //il giocatore 1 deve muovere solo le x e il giocatore 2 solo le o
-
+    //assicurarsi che le coordinate siano corrette altrimenti va in segmentation fault
+    Cell* last_move = move_pawn(this->pimpl->history->head->playground, 2, 4, bottom_left);
+    for (int i = 0; i < playground_size; ++i) {
+        for (int j = 0; j < playground_size; ++j)
+            cout << from_enum_to_char(last_move->playground[i][j])<< " ";
+        cout << endl;
+    }
 }
 
 bool Player::valid_move() const{
