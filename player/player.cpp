@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
+#include <random>
 #include "player.hpp"
 
 using namespace std;
@@ -85,7 +86,7 @@ Player::Player(const Player& player){
 
 Player& Player::operator=(const Player& player){
     //delete this;  //not working
-    //this->delete_history();   //not working
+    //this->delete_history();   //not working todo: c'è un problema di memoria alla riga successiva
     new Player(1);
     this->pimpl = new Impl;
     this->pimpl->player_nr = player.pimpl->player_nr;
@@ -241,7 +242,7 @@ void Player::init_board(const string& filename)const{
         throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
 }
 
-int Player::new_coordinates(char p, int r, int c, directions direction) {
+int Player::new_coordinates(char p, int r, int c, Directions direction) {
     int res;
     switch (direction) {
         case top_left:
@@ -277,7 +278,7 @@ int Player::new_coordinates(char p, int r, int c, directions direction) {
 
 
 //la funzione ritorna nullptr se il movimento non è consentito.
-Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::directions direction){
+Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::Directions direction){
     Player::Cell* res = nullptr;
     int new_r = new_coordinates('r', r, c, direction), new_c = new_coordinates('c', r, c, direction);
     if(matrix[r][c] != e && new_r != -1 && new_c != -1){
@@ -307,6 +308,42 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
                 res = nullptr;
             }
         }
+        //trasformare in dama!!!
+    }
+    return res;
+}
+
+struct Coordinates{
+    Player::piece piece;
+    int r;
+    int c;
+    bool valid;
+};
+
+//ritorna se si può muovere verso una direzione
+bool Player::can_move(piece matrix[8][8], int r, int c) {
+    switch (matrix[r][c]) {
+        case x:
+            return can_move_to(matrix, r, c, top_right) || can_move_to(matrix, r, c, top_left);
+        case o:
+            return can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, bottom_left);
+        case X:
+            return can_move_to(matrix, r, c, top_right) || can_move_to(matrix, r, c, top_left)
+            || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, top_left);
+        case O:
+            return can_move_to(matrix, r, c, top_right) || can_move_to(matrix, r, c, top_left)
+                   || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, top_left);
+        case e:
+            return false;
+    }
+}
+
+bool Player::can_move_to(piece matrix[8][8], int r, int c, Player::Directions direction) {
+    Cell* last_move = move_pawn(matrix, r,c, direction);
+    bool res = false;
+    if(last_move != nullptr){
+        res = true;
+        delete last_move;
     }
     return res;
 }
@@ -314,12 +351,39 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
 void Player::move(){
     //il giocatore 1 deve muovere solo le x e il giocatore 2 solo le o
     //assicurarsi che le coordinate siano corrette altrimenti va in segmentation fault
-    Cell* last_move = move_pawn(this->pimpl->history->head->playground, 5, 3, top_left);
-    //Cell* last_move = move_pawn(this->pimpl->history->head->playground, 1, 5, bottom_right);
+
+    Coordinates coordinate[12];
+    for (int i = 0; i < 12; ++i) {
+        coordinate[i] = {e, -1, -1, false};
+    }
+    int number_coordinate = 0;
     for (int i = 0; i < playground_size; ++i) {
-        for (int j = 0; j < playground_size; ++j)
-            cout << from_enum_to_char(last_move->playground[i][j])<< " ";
-        cout << endl;
+        for (int j = 0; j < playground_size; ++j){
+            if((this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x || this->pimpl->history->tail->playground[i][j] == X) ||
+                this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)) &&
+                        can_move(this->pimpl->history->tail->playground, i, j)){
+                coordinate[number_coordinate] = {this->pimpl->history->tail->playground[i][j], i, j, true};
+                number_coordinate++;
+            }
+        }
+    }
+
+    srand( time(NULL) );
+    int v1 = rand() % number_coordinate;
+    int v2 = rand()%4;
+    Cell* last_move = nullptr;
+
+    while(last_move == nullptr){
+        last_move = move_pawn(this->pimpl->history->head->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%4));
+    }
+
+    if(last_move != nullptr){
+        for (int i = 0; i < playground_size; ++i) {
+            for (int j = 0; j < playground_size; ++j)
+                cout << from_enum_to_char(last_move->playground[i][j])<< " ";
+            cout << endl;
+        }
+        delete last_move;
     }
 }
 

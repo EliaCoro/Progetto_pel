@@ -96,14 +96,17 @@ private:
 
 public:
     struct Cell;
-    enum directions{
+    enum Directions{
         top_left,
         top_right,
         bottom_left,
         bottom_right
     };
-    int new_coordinates(char p, int r, int c, directions direction);
-    Cell* move_pawn(piece matrix[8][8], int r, int c, directions direction);
+
+    bool can_move(piece matrix[8][8], int r, int c);
+    bool can_move_to(piece matrix[8][8], int r, int c, Directions direction);
+    int new_coordinates(char p, int r, int c, Directions direction);
+    Cell* move_pawn(piece matrix[8][8], int r, int c, Directions direction);
     piece from_char_to_enum(char c);
     char from_enum_to_char(piece p) const;
     bool correct_playground(piece matrix[8][8]);
