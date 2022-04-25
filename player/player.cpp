@@ -278,7 +278,7 @@ int Player::new_coordinates(char p, int r, int c, directions direction) {
 
 //la funzione ritorna nullptr se il movimento non è consentito.
 Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::directions direction){
-    Player::Cell* res;
+    Player::Cell* res = nullptr;
     int new_r = new_coordinates('r', r, c, direction), new_c = new_coordinates('c', r, c, direction);
     if(matrix[r][c] != e && new_r != -1 && new_c != -1){
         res = new Player::Cell;
@@ -293,9 +293,20 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
             res->playground[new_r][new_c] = res->playground[r][c];
             res->playground[r][c] = e;
         }else{
-            //dio cane
-        }
+            int last_r = new_coordinates('r', new_r, new_c, direction), last_c = new_coordinates('c', new_r, new_c, direction);
+            if((last_r != -1 && last_c != -1) && (res->playground[r][c] == x && res->playground[new_r][new_c] == o) ||
+                    (res->playground[r][c] == o && res->playground[new_r][new_c] == x) ||
+                    (res->playground[r][c] == X && (res->playground[new_r][new_c] == o || res->playground[new_r][new_c] == O)) ||
+                    (res->playground[r][c] == O && (res->playground[new_r][new_c] == x || res->playground[new_r][new_c] == X))){
 
+                res->playground[new_r][new_c] = e;
+                res->playground[last_r][last_c] = res->playground[r][c];
+                res->playground[r][c] = e;
+            } else{
+                delete res;
+                res = nullptr;
+            }
+        }
     }
     return res;
 }
@@ -303,7 +314,8 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
 void Player::move(){
     //il giocatore 1 deve muovere solo le x e il giocatore 2 solo le o
     //assicurarsi che le coordinate siano corrette altrimenti va in segmentation fault
-    Cell* last_move = move_pawn(this->pimpl->history->head->playground, 2, 4, bottom_left);
+    Cell* last_move = move_pawn(this->pimpl->history->head->playground, 5, 3, top_left);
+    //Cell* last_move = move_pawn(this->pimpl->history->head->playground, 1, 5, bottom_right);
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j)
             cout << from_enum_to_char(last_move->playground[i][j])<< " ";
