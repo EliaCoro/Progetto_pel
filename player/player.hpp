@@ -80,7 +80,7 @@ public:
 
     bool loses(int player_nr) const;
 
-    bool loses() const;
+    bool loses();   //const
 
     /* return how many times the last board appeared in the past
      * for example, if the history is A B C B D C B (where A,B,C,D are distinct boards and the most recent is 'B')
@@ -89,12 +89,12 @@ public:
      */
     int recurrence() const;
 
-private:
-
+//private:
+public:
     struct Impl;
     Impl* pimpl;
 
-public:
+
     struct Cell;
     enum Directions{
         top_left,
@@ -112,5 +112,6 @@ public:
     bool correct_playground(piece matrix[8][8]);
     void delete_history();
     void new_cell_history(piece matrix[8][8]);
+    void print_last_playground();
     void print_playground();
 };

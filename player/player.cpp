@@ -115,13 +115,13 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
             throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
     }
     piece pezzo = pc->playground[r][c];
-    cout << from_enum_to_char(pezzo)<<endl;
     return pezzo;
 }
 
 void Player::print_playground(){
     Cell* pc = this->pimpl->history->head;
     int counter = 0;
+    cout<<"player nr: "<<this->pimpl->player_nr<<endl;
     while(pc){
         cout<<"Playground nr: " <<counter++<<endl;
         for (int i = 0; i < playground_size; ++i){
@@ -132,6 +132,17 @@ void Player::print_playground(){
         cout<<endl<<endl<<endl;
         pc = pc->next;
     }
+}
+
+void Player::print_last_playground(){
+    Cell* pc = this->pimpl->history->tail;
+    int counter = 0;
+    for (int i = 0; i < playground_size; ++i){
+        for (int j = 0; j < playground_size; ++j)
+            cout<<from_enum_to_char(pc->playground[i][j])<<" ";
+        cout<<endl;
+    }
+    cout<<endl<<endl<<endl;
 }
 
 void Player::new_cell_history(Player::piece matrix[playground_size][playground_size]) {
@@ -178,6 +189,7 @@ void Player::load_board(const string& filename){
 
     Player::piece playground[playground_size][playground_size];
     int i = 0;
+    cout<<"input file:"<<endl;
     while(file.good()) {
         string s;
         getline(file, s);
@@ -186,8 +198,10 @@ void Player::load_board(const string& filename){
         for (int j = 0; j < s.size(); j=j+2) {
             playground[i][j/2] = from_char_to_enum(s.at(j));
         }
+        cout<<s<<endl;
         i++;
     }
+    cout<<endl<<endl<<endl<<endl;
     if (!file.eof())
         throw player_exception{player_exception::err_type(2),"We should be at the end of the file, but we are not"};
 
@@ -211,9 +225,11 @@ void Player::store_board(const string& filename, int history_offset) const{
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j) {
             file << from_enum_to_char(pc->playground[i][j]);
-            file << " ";
+            if(j != playground_size-1)
+                file << " ";
         }
-        file << endl;
+        if(i != playground_size-1)
+            file << endl;
     }
 
     if(!file.good())
@@ -225,6 +241,8 @@ void Player::store_board(const string& filename, int history_offset) const{
 
 
 void Player::init_board(const string& filename)const{
+    //todo: vedere se va salvata nella history
+
     string board = "o   o   o   o  \n"
                    "  o   o   o   o\n"
                    "o   o   o   o  \n"
@@ -280,8 +298,14 @@ int Player::new_coordinates(char p, int r, int c, Directions direction) {
 //la funzione ritorna nullptr se il movimento non è consentito.
 Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::Directions direction){
     Player::Cell* res = nullptr;
+    Player::piece temp[8][8];
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            temp[i][j] = matrix[i][j];
+
     int new_r = new_coordinates('r', r, c, direction), new_c = new_coordinates('c', r, c, direction);
-    if(matrix[r][c] != e && new_r != -1 && new_c != -1){
+    //this->print_last_playground();
+    if(new_r != -1 && new_c != -1){
         res = new Player::Cell;
         res->next = nullptr;
         res->prev = nullptr;
@@ -289,6 +313,9 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
         for (int i = 0; i < playground_size; ++i)
             for (int j = 0; j < playground_size; ++j)
                 res->playground[i][j] = matrix[i][j];
+
+        char temp2 = from_enum_to_char(matrix[new_r][new_c]);
+        piece temp3 = (matrix[new_r][new_c]);
 
         if(matrix[new_r][new_c] == e){
             res->playground[new_r][new_c] = res->playground[r][c];
@@ -374,17 +401,14 @@ void Player::move(){
     Cell* last_move = nullptr;
 
     while(last_move == nullptr){
-        last_move = move_pawn(this->pimpl->history->head->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%4));
+        if(coordinate[v1].piece == x)
+            last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%2));
+        if(coordinate[v1].piece == o)
+            last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%2+2));
     }
 
-    if(last_move != nullptr){
-        for (int i = 0; i < playground_size; ++i) {
-            for (int j = 0; j < playground_size; ++j)
-                cout << from_enum_to_char(last_move->playground[i][j])<< " ";
-            cout << endl;
-        }
-        delete last_move;
-    }
+    this->new_cell_history(last_move->playground);
+    delete last_move;
 }
 
 bool Player::valid_move() const{
@@ -419,8 +443,31 @@ bool Player::loses(int player_nr)const{
 
 }
 
-bool Player::loses()const{
-
+bool Player::loses(){
+    if(this->pimpl->history->head) {
+        Coordinates coordinate[12];
+        for (int i = 0; i < 12; ++i) {
+            coordinate[i] = {e, -1, -1, false};
+        }
+        int number_coordinate = 0;
+        for (int i = 0; i < playground_size; ++i) {
+            for (int j = 0; j < playground_size; ++j) {
+                if ((this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x ||
+                                                     this->pimpl->history->tail->playground[i][j] == X) ||
+                     this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o ||
+                                                     this->pimpl->history->tail->playground[i][j] == O)) &&
+                    can_move(this->pimpl->history->tail->playground, i, j)) {
+                    coordinate[number_coordinate] = {this->pimpl->history->tail->playground[i][j], i, j, true};
+                    number_coordinate++;
+                }
+            }
+        }
+        if (number_coordinate == 0)
+            return true;
+        else
+            return false;
+    }else
+        return false;
 }
 
 int Player::recurrence()const{
