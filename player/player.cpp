@@ -363,10 +363,10 @@ bool Player::can_move(piece matrix[8][8], int r, int c) {
             return can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, bottom_left);
         case X:
             return can_move_to(matrix, r, c, top_right) || can_move_to(matrix, r, c, top_left)
-            || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, top_left);
+            || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, bottom_left);
         case O:
             return can_move_to(matrix, r, c, top_right) || can_move_to(matrix, r, c, top_left)
-                   || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, top_left);
+                   || can_move_to(matrix, r, c, bottom_right) || can_move_to(matrix, r, c, bottom_left);
         case e:
             return false;
     }
