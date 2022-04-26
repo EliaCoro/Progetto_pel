@@ -24,7 +24,6 @@ struct History{
 
 struct Player::Impl{
     int player_nr;
-    char pieces;
     History* history;
 };
 
@@ -122,6 +121,7 @@ void Player::print_playground(){
     Cell* pc = this->pimpl->history->head;
     int counter = 0;
     cout<<"player nr: "<<this->pimpl->player_nr<<endl;
+    cout<<"----------------"<<endl;
     while(pc){
         cout<<"Playground nr: " <<counter++<<endl;
         for (int i = 0; i < playground_size; ++i){
@@ -132,16 +132,18 @@ void Player::print_playground(){
         cout<<endl<<endl<<endl;
         pc = pc->next;
     }
+    cout<<"----------------"<<endl;
 }
 
 void Player::print_last_playground(){
     Cell* pc = this->pimpl->history->tail;
-    int counter = 0;
+    cout<<"----------------"<<endl;
     for (int i = 0; i < playground_size; ++i){
         for (int j = 0; j < playground_size; ++j)
             cout<<from_enum_to_char(pc->playground[i][j])<<" ";
         cout<<endl;
     }
+    cout<<"----------------"<<endl;
     cout<<endl<<endl<<endl;
 }
 
@@ -189,7 +191,6 @@ void Player::load_board(const string& filename){
 
     Player::piece playground[playground_size][playground_size];
     int i = 0;
-    cout<<"input file:"<<endl;
     while(file.good()) {
         string s;
         getline(file, s);
@@ -198,10 +199,8 @@ void Player::load_board(const string& filename){
         for (int j = 0; j < s.size(); j=j+2) {
             playground[i][j/2] = from_char_to_enum(s.at(j));
         }
-        cout<<s<<endl;
         i++;
     }
-    cout<<endl<<endl<<endl<<endl;
     if (!file.eof())
         throw player_exception{player_exception::err_type(2),"We should be at the end of the file, but we are not"};
 
@@ -336,7 +335,14 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
                 res = nullptr;
             }
         }
-        //trasformare in dama!!!
+        if(res != nullptr){
+            for (int i = 0; i < playground_size; ++i) {
+                if(res->playground[0][i] == x)
+                    res->playground[0][i] = X;
+                if(res->playground[playground_size-1][i] == o)
+                    res->playground[playground_size-1][i] = O;
+            }
+        }
     }
     return res;
 }
@@ -400,16 +406,22 @@ void Player::move(){
     int v1 = rand() % number_coordinate;
     int v2 = rand()%4;
     Cell* last_move = nullptr;
+    if(number_coordinate > 0) {
+        while (last_move == nullptr) {
+            if (coordinate[v1].piece == x)
+                last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 2));
+            if (coordinate[v1].piece == o)
+                last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 2 + 2));
+            if (coordinate[v1].piece == X || coordinate[v1].piece == O)
+                last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 4));
+        }
 
-    while(last_move == nullptr){
-        if(coordinate[v1].piece == x)
-            last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%2));
-        if(coordinate[v1].piece == o)
-            last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c, Directions((v2++)%2+2));
+        this->new_cell_history(last_move->playground);
+        delete last_move;
     }
-
-    this->new_cell_history(last_move->playground);
-    delete last_move;
 }
 
 bool Player::valid_move() const{
