@@ -322,10 +322,11 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
             res->playground[r][c] = e;
         }else{
             int last_r = new_coordinates('r', new_r, new_c, direction), last_c = new_coordinates('c', new_r, new_c, direction);
-            if((last_r != -1 && last_c != -1) && (res->playground[r][c] == x && res->playground[new_r][new_c] == o) ||
+            if((last_r != -1 && last_c != -1) && res->playground[last_r][last_c] == e &&
+                    ((res->playground[r][c] == x && res->playground[new_r][new_c] == o) ||
                     (res->playground[r][c] == o && res->playground[new_r][new_c] == x) ||
                     (res->playground[r][c] == X && (res->playground[new_r][new_c] == o || res->playground[new_r][new_c] == O)) ||
-                    (res->playground[r][c] == O && (res->playground[new_r][new_c] == x || res->playground[new_r][new_c] == X))){
+                    (res->playground[r][c] == O && (res->playground[new_r][new_c] == x || res->playground[new_r][new_c] == X)))){
 
                 res->playground[new_r][new_c] = e;
                 res->playground[last_r][last_c] = res->playground[r][c];
