@@ -402,11 +402,12 @@ void Player::move(){
         }
     }
 
+    if(number_coordinate > 0) {
     srand( time(NULL) );
     int v1 = rand() % number_coordinate;
     int v2 = rand()%4;
     Cell* last_move = nullptr;
-    if(number_coordinate > 0) {
+
         while (last_move == nullptr) {
             if (coordinate[v1].piece == x)
                 last_move = move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
