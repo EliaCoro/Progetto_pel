@@ -103,10 +103,25 @@ public:
         bottom_right
     };
 
+    struct Points{
+        int r;
+        int c;
+        Directions direction;
+        int point;
+        bool valid;
+    };
+
+    enum point{
+        nothing = 0,
+        eat_pawn = 10,
+        eat_dama = 15,
+        make_dama = 13
+    };
+
     bool can_move(piece matrix[8][8], int r, int c);
-    bool can_move_to(piece matrix[8][8], int r, int c, Directions direction);
+    bool move_to(piece matrix[8][8], int r, int c, Directions direction, int& point);
     int new_coordinates(char p, int r, int c, Directions direction);
-    Cell* move_pawn(piece matrix[8][8], int r, int c, Directions direction);
+    Cell* move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point);
     piece from_char_to_enum(char c);
     char from_enum_to_char(piece p) const;
     bool correct_playground(piece matrix[8][8]);
