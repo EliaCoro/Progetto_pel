@@ -115,7 +115,8 @@ public:
         nothing = 0,
         eat_pawn = 10,
         eat_dama = 15,
-        make_dama = 13
+        make_dama = 13,
+        loose = -20
     };
 
     bool can_move(piece matrix[8][8], int r, int c);

@@ -331,29 +331,33 @@ bool Player::loses(int player_nr)const{
 
 bool Player::loses(){
     if(this->pimpl->history->head) {
-        Coordinates coordinate[12];
-        for (int i = 0; i < 12; ++i) {
-            coordinate[i] = {e, -1, -1, false};
+        Points points[12 * 4];
+        for (int i = 0; i < 12 * 4; ++i) {
+            points[i] = {-1, -1, Directions(i%4), 0, false};
         }
+
         int number_coordinate = 0;
         for (int i = 0; i < playground_size; ++i) {
-            for (int j = 0; j < playground_size; ++j) {
-                if ((this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x ||
-                                                     this->pimpl->history->tail->playground[i][j] == X) ||
-                     this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o ||
-                                                     this->pimpl->history->tail->playground[i][j] == O)) &&
-                    can_move(this->pimpl->history->tail->playground, i, j)) {
-                    coordinate[number_coordinate] = {this->pimpl->history->tail->playground[i][j], i, j, true};
-                    number_coordinate++;
+            for (int j = 0; j < playground_size; ++j){
+                if(this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x || this->pimpl->history->tail->playground[i][j] == X) ||
+                   this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)){
+
+                    for (int k = 0; k < 4; ++k) {
+                        points[number_coordinate].r = i;
+                        points[number_coordinate].c = j;
+                        points[number_coordinate].valid = move_to(this->pimpl->history->tail->playground, i, j, points[number_coordinate].direction,points[number_coordinate].point);
+                        number_coordinate++;
+                    }
                 }
             }
         }
-        if (number_coordinate == 0)
-            return true;
-        else
-            return false;
-    }else
-        return false;
+        for (int i = 0; i < number_coordinate; ++i) {
+            if(points[i].valid)
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 int Player::recurrence()const{
@@ -445,13 +449,15 @@ bool Player::move_to(piece matrix[8][8], int r, int c, Directions direction, int
 }
 
 bool order(Player::Points one, Player::Points two){
+    srand( time(NULL) );
     if(!one.valid && !two.valid)
         return false;
     if(!one.valid && two.valid)
         return false;
     if(one.valid && !two.valid)
         return true;
-
+    if(one.point == two.point)
+        return rand() % 2;
     return one.point > two.point;
 }
 
@@ -476,11 +482,17 @@ void Player::move() {
             }
         }
     }
-    sort(points, points + number_coordinate, order);
+    //sort(points, points + number_coordinate, order);
+    int find_max_pos = 0, points_max = -1;
+    for (int i = 0; i < number_coordinate; ++i) {
+        if(points[i].valid && points[i].point > points_max){
+            find_max_pos = i;
+        }
+    }
 
-    if(number_coordinate > 0 && points[number_coordinate].valid) {
+    if(number_coordinate > 0 && points[find_max_pos].valid) {
         int temp_points;
-        Cell* last_move = move_pawn(this->pimpl->history->tail->playground, points[0].r, points[0].c, points[0].direction, temp_points);
+        Cell* last_move = move_pawn(this->pimpl->history->tail->playground, points[find_max_pos].r, points[find_max_pos].c, points[find_max_pos].direction, temp_points);
         if(last_move){
             this->new_cell_history(last_move->playground);
             delete last_move;
