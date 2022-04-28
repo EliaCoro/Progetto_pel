@@ -119,10 +119,16 @@ public:
         loose = -20
     };
 
-    bool can_move(piece matrix[8][8], int r, int c);
-    bool move_to(piece matrix[8][8], int r, int c, Directions direction, int& point);
+    bool old_can_move(piece matrix[8][8], int r, int c);
+    bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
+    Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
+    void old_move();
+
+    bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point);
+    Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point);
+    void last_move();
+
     int new_coordinates(char p, int r, int c, Directions direction);
-    Cell* move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point);
     piece from_char_to_enum(char c);
     char from_enum_to_char(piece p) const;
     bool correct_playground(piece matrix[8][8]);

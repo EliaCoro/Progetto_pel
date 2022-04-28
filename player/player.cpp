@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <random>
 #include "player.hpp"
-#include <bits/stdc++.h>        //TODO: CHIEDERE SE VA BENE
 
 using namespace std;
 
@@ -345,7 +344,9 @@ bool Player::loses(){
                     for (int k = 0; k < 4; ++k) {
                         points[number_coordinate].r = i;
                         points[number_coordinate].c = j;
-                        points[number_coordinate].valid = move_to(this->pimpl->history->tail->playground, i, j, points[number_coordinate].direction,points[number_coordinate].point);
+                        points[number_coordinate].valid = last_move_to(this->pimpl->history->tail->playground, i, j,
+                                                                       points[number_coordinate].direction,
+                                                                       points[number_coordinate].point);
                         number_coordinate++;
                     }
                 }
@@ -366,7 +367,7 @@ int Player::recurrence()const{
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
-Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::Directions direction, int& point){
+Player::Cell* Player::last_move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::Directions direction, int& point){
     Player::Cell* res = nullptr;
     Player::piece temp[8][8];
     for (int i = 0; i < playground_size; ++i)
@@ -427,18 +428,18 @@ Player::Cell* Player::move_pawn(Player::piece matrix[playground_size][playground
 }
 
 
-bool Player::move_to(piece matrix[8][8], int r, int c, Directions direction, int& point){
+bool Player::last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point){
     Cell* temp = nullptr;
     piece pezzo = matrix[r][c];
 
     if(matrix[r][c] == x && (direction == top_left || direction == top_right)) {
-        temp = move_pawn(matrix, r, c, direction, point);
+        temp = last_move_pawn(matrix, r, c, direction, point);
     }
     if(matrix[r][c] == o && (direction == bottom_left || direction == bottom_right)) {
-        temp = move_pawn(matrix, r, c, direction, point);
+        temp = last_move_pawn(matrix, r, c, direction, point);
     }
     if(matrix[r][c] == X || matrix[r][c] == O)
-        temp = move_pawn(matrix, r, c, direction, point);
+        temp = last_move_pawn(matrix, r, c, direction, point);
 
     if(temp != nullptr){
         delete temp;
@@ -461,7 +462,7 @@ bool order(Player::Points one, Player::Points two){
     return one.point > two.point;
 }
 
-void Player::move() {
+void Player::last_move(){
     Points points[12 * 4];
     for (int i = 0; i < 12 * 4; ++i) {
         points[i] = {-1, -1, Directions(i%4), 0, false};
@@ -471,12 +472,14 @@ void Player::move() {
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j){
             if(this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x || this->pimpl->history->tail->playground[i][j] == X) ||
-                this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)){
+               this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)){
 
                 for (int k = 0; k < 4; ++k) {
                     points[number_coordinate].r = i;
                     points[number_coordinate].c = j;
-                    points[number_coordinate].valid = move_to(this->pimpl->history->tail->playground, i, j, points[number_coordinate].direction,points[number_coordinate].point);
+                    points[number_coordinate].valid = last_move_to(this->pimpl->history->tail->playground, i, j,
+                                                                   points[number_coordinate].direction,
+                                                                   points[number_coordinate].point);
                     number_coordinate++;
                 }
             }
@@ -492,7 +495,8 @@ void Player::move() {
 
     if(number_coordinate > 0 && points[find_max_pos].valid) {
         int temp_points;
-        Cell* last_move = move_pawn(this->pimpl->history->tail->playground, points[find_max_pos].r, points[find_max_pos].c, points[find_max_pos].direction, temp_points);
+        Cell* last_move = last_move_pawn(this->pimpl->history->tail->playground, points[find_max_pos].r,
+                                         points[find_max_pos].c, points[find_max_pos].direction, temp_points);
         if(last_move){
             this->new_cell_history(last_move->playground);
             delete last_move;
@@ -500,13 +504,134 @@ void Player::move() {
     }
 }
 
-
-bool Player::can_move(piece matrix[8][8], int r, int c) {
-
+void Player::move() {
+    if(this->pimpl->player_nr == 1)
+        last_move();
+    else
+        old_move();
 }
 
 bool Player::valid_move() const{
 
 }
 
+//-------------------------------------------------------------//
 
+bool Player::old_can_move(piece matrix[8][8], int r, int c) {
+    switch (matrix[r][c]) {
+        case x:
+            return old_can_move_to(matrix, r, c, top_right) || old_can_move_to(matrix, r, c, top_left);
+        case o:
+            return old_can_move_to(matrix, r, c, bottom_right) || old_can_move_to(matrix, r, c, bottom_left);
+        case X:
+            return old_can_move_to(matrix, r, c, top_right) || old_can_move_to(matrix, r, c, top_left)
+                   || old_can_move_to(matrix, r, c, bottom_right) || old_can_move_to(matrix, r, c, bottom_left);
+        case O:
+            return old_can_move_to(matrix, r, c, top_right) || old_can_move_to(matrix, r, c, top_left)
+                   || old_can_move_to(matrix, r, c, bottom_right) || old_can_move_to(matrix, r, c, bottom_left);
+        case e:
+            return false;
+    }
+}
+
+bool Player::old_can_move_to(piece matrix[8][8], int r, int c, Player::Directions direction) {
+    Cell* last_move = old_move_pawn(matrix, r, c, direction);
+    bool res = false;
+    if(last_move != nullptr){
+        res = true;
+        delete last_move;
+    }
+    return res;
+}
+
+Player::Cell* Player::old_move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Player::Directions direction){
+    Player::Cell* res = nullptr;
+    Player::piece temp[8][8];
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            temp[i][j] = matrix[i][j];
+
+    int new_r = new_coordinates('r', r, c, direction), new_c = new_coordinates('c', r, c, direction);
+    //this->print_last_playground();
+    if(new_r != -1 && new_c != -1){
+        res = new Player::Cell;
+        res->next = nullptr;
+        res->prev = nullptr;
+        res->index = 0;
+        for (int i = 0; i < playground_size; ++i)
+            for (int j = 0; j < playground_size; ++j)
+                res->playground[i][j] = matrix[i][j];
+
+        char temp2 = from_enum_to_char(matrix[new_r][new_c]);
+        piece temp3 = (matrix[new_r][new_c]);
+
+        if(matrix[new_r][new_c] == e){
+            res->playground[new_r][new_c] = res->playground[r][c];
+            res->playground[r][c] = e;
+        }else{
+            int last_r = new_coordinates('r', new_r, new_c, direction), last_c = new_coordinates('c', new_r, new_c, direction);
+            if((last_r != -1 && last_c != -1) && res->playground[last_r][last_c] == e &&
+               ((res->playground[r][c] == x && res->playground[new_r][new_c] == o) ||
+                (res->playground[r][c] == o && res->playground[new_r][new_c] == x) ||
+                (res->playground[r][c] == X && (res->playground[new_r][new_c] == o || res->playground[new_r][new_c] == O)) ||
+                (res->playground[r][c] == O && (res->playground[new_r][new_c] == x || res->playground[new_r][new_c] == X)))){
+
+                res->playground[new_r][new_c] = e;
+                res->playground[last_r][last_c] = res->playground[r][c];
+                res->playground[r][c] = e;
+            } else{
+                delete res;
+                res = nullptr;
+            }
+        }
+        if(res != nullptr){
+            for (int i = 0; i < playground_size; ++i) {
+                if(res->playground[0][i] == x)
+                    res->playground[0][i] = X;
+                if(res->playground[playground_size-1][i] == o)
+                    res->playground[playground_size-1][i] = O;
+            }
+        }
+    }
+    return res;
+}
+
+void Player::old_move(){
+    Coordinates coordinate[12];
+    for (int i = 0; i < 12; ++i) {
+        coordinate[i] = {e, -1, -1, false};
+    }
+    int number_coordinate = 0;
+    for (int i = 0; i < playground_size; ++i) {
+        for (int j = 0; j < playground_size; ++j){
+            if((this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x || this->pimpl->history->tail->playground[i][j] == X) ||
+                this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)) &&
+                    old_can_move(this->pimpl->history->tail->playground, i, j)){
+                coordinate[number_coordinate] = {this->pimpl->history->tail->playground[i][j], i, j, true};
+                number_coordinate++;
+            }
+        }
+    }
+
+    if(number_coordinate > 0) {
+        srand( time(NULL) );
+        int v1 = rand() % number_coordinate;
+        int v2 = rand()%4;
+        Cell* last_move = nullptr;
+
+        while (last_move == nullptr) {
+            if (coordinate[v1].piece == x)
+                last_move = old_move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 2));
+            if (coordinate[v1].piece == o)
+                last_move = old_move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 2 + 2));
+            if (coordinate[v1].piece == X || coordinate[v1].piece == O)
+                last_move = old_move_pawn(this->pimpl->history->tail->playground, coordinate[v1].r, coordinate[v1].c,
+                                      Directions((v2++) % 4));
+        }
+
+        this->new_cell_history(last_move->playground);
+        delete last_move;
+    }
+}
