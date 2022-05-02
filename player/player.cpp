@@ -485,7 +485,7 @@ void Player::last_move(){
             }
         }
     }
-    //sort(points, points + number_coordinate, order);
+
     int find_max_pos = 0, points_max = -1;
     for (int i = 0; i < number_coordinate; ++i) {
         if(points[i].valid && points[i].point > points_max){
@@ -503,6 +503,26 @@ void Player::last_move(){
         }
     }
 }
+
+void Player::move_recursive(int player_nr, Player::piece matrix[8][8], int& points, int depth){
+    if(depth == 0){
+        return;
+    }else{
+        Points points[12 * 4];
+        int number_coordinate = 0;
+        //init points
+
+        for (int i = 0; i < number_coordinate; ++i) {
+            Cell* temp = last_move_pawn(matrix, points->r, points->c, points->direction, points->point);
+
+            move_recursive((player_nr+1) % 2, temp->playground, points->point, depth-1);
+            delete temp;
+        }
+
+    }
+}
+
+
 
 void Player::move() {
     if(this->pimpl->player_nr == 1)

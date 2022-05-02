@@ -78,7 +78,7 @@ public:
 
     bool loses(int player_nr) const;
 
-    bool loses() const;
+    bool loses();   //const
 
     /* return how many times the last board appeared in the past
      * for example, if the history is A B C B D C B (where A,B,C,D are distinct boards and the most recent is 'B')
@@ -116,6 +116,7 @@ public:
         loose = -20
     };
 
+    void move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
     bool old_can_move(piece matrix[8][8], int r, int c);
     bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
     Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
