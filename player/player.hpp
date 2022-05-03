@@ -88,7 +88,6 @@ public:
      * in the history
      */
     int recurrence() const;
-//private:
 public:
     struct Impl;
     Impl* pimpl;

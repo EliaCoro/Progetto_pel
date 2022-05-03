@@ -2,12 +2,14 @@
 
 using namespace std;
 
-int main(){
+string path ="../board/";
+
+void game(){
+
     float board = 0, end = 100000;
     float one_count = 0, two_count = 0, no_one = 0;
 
     //test dame
-   string path ="../board/";
 
     while(board <= end) {
         cout << "game: " << board++ << endl;
@@ -50,4 +52,8 @@ int main(){
     cout << "One wins: "<<one_count/board*100<<" %"<<endl;
     cout << "two wins: "<<two_count/board*100<<" %"<<endl;
     cout << "no_one wins: "<<no_one/board*100<<" %"<<endl;
+}
+
+int main(){
+    game();
 }

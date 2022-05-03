@@ -9,9 +9,6 @@ using namespace std;
 
 #define playground_size 8
 
-
-
-struct Cell;
 enum Directions{
     top_left,
     top_right,
@@ -52,7 +49,9 @@ struct Player::Impl{
     int player_nr;
     History* history;
 
-    void move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
+    void print_this_playground(piece matrix[8][8]);
+
+    Cell* move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
     bool old_can_move(piece matrix[8][8], int r, int c);
     bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
     Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
@@ -70,7 +69,19 @@ struct Player::Impl{
     void new_cell_history(piece matrix[8][8]);
     void print_last_playground();
     void print_playground();
+    void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
 };
+
+void Player::Impl::print_this_playground(piece matrix[8][8]){
+    cout<<"----------------"<<endl;
+    for (int i = 0; i < playground_size; ++i){
+        for (int j = 0; j < playground_size; ++j)
+            cout<<from_enum_to_char(matrix[i][j])<<" ";
+        cout<<endl;
+    }
+    cout<<"----------------"<<endl;
+    cout<<endl<<endl<<endl;
+}
 
 Player::piece Player::Impl::from_char_to_enum(char c){
     switch(c){
@@ -537,35 +548,104 @@ void Player::Impl::last_move(){
     }
 }
 
-void Player::Impl::move_recursive(int player_nr, Player::piece matrix[8][8], int& points, int depth){
+void Player::Impl::init_points(int player_number, Player::piece matrix[8][8], Points *points, int &number_coordinate){
+    for (int i = 0; i < 12 * 4; ++i) {
+        points[i] = {-1, -1, Directions(i%4), 0, false};
+    }
+    for (int i = 0; i < playground_size; ++i) {
+        for (int j = 0; j < playground_size; ++j){
+            if(player_number == 1 && (matrix[i][j] == x || matrix[i][j] == X) ||
+               player_number == 2 && (matrix[i][j] == o || matrix[i][j] == O)){
+
+                for (int k = 0; k < 4; ++k) {
+                    points[number_coordinate].r = i;
+                    points[number_coordinate].c = j;
+                    Player temp_player(player_number);
+                    auto temp = temp_player.pimpl->last_move_to(matrix, i, j,
+                                                 points[number_coordinate].direction,
+                                                 points[number_coordinate].point);
+                    points[number_coordinate].valid = temp;
+                    number_coordinate++;
+                }
+            }
+        }
+    }
+}
+
+int find_max_points(Points* points, int number_coordinate){
+    int find_max_pos = 0, points_max = -1;
+    for (int i = 0; i < number_coordinate; ++i) {
+        if(points[i].valid && points[i].point > points_max){
+            find_max_pos = i;
+            points_max = points[i].point;
+        }
+    }
+    return find_max_pos;
+}
+
+
+Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8], int& punteggio, int depth){
     if(depth == 0){
-        return;
+        return nullptr;
     }else{
         Points points[12 * 4];
         int number_coordinate = 0;
-        //init points
+        init_points(player_number, matrix, points, number_coordinate);
+
 
         for (int i = 0; i < number_coordinate; ++i) {
-            Cell* temp = last_move_pawn(matrix, points->r, points->c, points->direction, points->point);
-
-            move_recursive((player_nr+1) % 2, temp->playground, points->point, depth-1);
-            delete temp;
+            if(points[i].valid) {
+                int temp_points;
+                Cell *temp = last_move_pawn(matrix, points[i].r, points[i].c, points[i].direction, temp_points);
+                int temp_points2 = 0;
+                //this->print_this_playground(temp->playground);
+                move_recursive((player_nr + 1) % 3, temp->playground, temp_points2, depth - 1);
+                //this->print_this_playground(matrix);
+                points[i].point -= temp_points2;
+                if(temp != nullptr){
+                    delete temp;
+                }
+            }
         }
-        //sorting
-        if(number_coordinate != 0)
-            return;
-        else
-            return;
+
+        int find_max_pos = find_max_points(points, number_coordinate);
+
+
+        if(number_coordinate > 0 && points[find_max_pos].valid) {
+            Cell* last_move = last_move_pawn(matrix, points[find_max_pos].r,
+                                             points[find_max_pos].c, points[find_max_pos].direction, punteggio);
+            if(last_move){
+                if(depth==2){
+                    cout<<"res:  "<< last_move <<endl;
+                    this->print_this_playground(last_move->playground);
+
+                }
+                return last_move;
+            }
+        }
     }
 }
 
 
 
 void Player::move() {
-    if(this->pimpl->player_nr == 1)
-        this->pimpl->last_move();
-    else
+    if(this->pimpl->player_nr == 1){
+        int points, depth = 3;
+        Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
+        if(res != nullptr){
+            cout << "print res " << res << endl;
+            this->pimpl->print_this_playground(res->playground);
+            this->pimpl->new_cell_history(res->playground);
+            this->pimpl->print_last_playground();
+            delete res;
+        } else
+            throw "player 1 looses";
+    }
+    else{
         this->pimpl->old_move();
+        this->pimpl->print_last_playground();
+        cout<<""<<endl;
+    }
 }
 
 bool Player::valid_move() const{
