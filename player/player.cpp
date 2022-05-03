@@ -583,6 +583,19 @@ int find_max_points(Points* points, int number_coordinate){
     return find_max_pos;
 }
 
+void sorting(Points* points, int number_coordinate){
+    for (int i = number_coordinate-1; i >= 0; --i) {
+        for (int j = number_coordinate-1; j >= 0; --j) {
+            if(points[j].valid || points[i].valid){
+                if((points[j].valid && !points[i].valid) || (points[j].valid && points[i].valid && points[j].point > points[i].point)) {
+                    auto temp = points[i];
+                    points[i] = points[j];
+                    points[j] = temp;
+                }
+            }
+        }
+    }
+}
 
 Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8], int& punteggio, int depth){
     if(depth == 0){
@@ -601,19 +614,21 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
                 //this->print_this_playground(temp->playground);
                 move_recursive((player_nr + 1) % 3, temp->playground, temp_points2, depth - 1);
                 //this->print_this_playground(matrix);
-                points[i].point -= temp_points2;
+                points[i].point -= temp_points2 + depth;
                 if(temp != nullptr){
                     delete temp;
                 }
             }
         }
 
-        int find_max_pos = find_max_points(points, number_coordinate);
+        /*int find_max_pos = find_max_points(points, number_coordinate);
+        Points max = points[find_max_pos];*/
 
+        sorting(points, number_coordinate);
 
-        if(number_coordinate > 0 && points[find_max_pos].valid) {
-            Cell* last_move = last_move_pawn(matrix, points[find_max_pos].r,
-                                             points[find_max_pos].c, points[find_max_pos].direction, punteggio);
+        if(number_coordinate > 0 && points[0].valid) {
+            Cell* last_move = last_move_pawn(matrix, points[0].r,
+                                             points[0].c, points[0].direction, punteggio);
             if(last_move){
                 if(depth==2){
                     cout<<"res:  "<< last_move <<endl;
@@ -622,7 +637,8 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
                 }
                 return last_move;
             }
-        }
+        }else
+            return nullptr;
     }
 }
 
@@ -630,7 +646,7 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
 
 void Player::move() {
     if(this->pimpl->player_nr == 1){
-        int points, depth = 3;
+        int points, depth = 2;
         Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
         if(res != nullptr){
             cout << "print res " << res << endl;
