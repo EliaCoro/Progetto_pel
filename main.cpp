@@ -1,5 +1,6 @@
 #include "player/player.hpp"
 
+using namespace std;
 
 int main(){
     float board = 0, end = 100000;

@@ -4,6 +4,8 @@
 #include <string>
 #include <stdlib.h>
 
+using namespace std;
+
 struct player_exception{
     enum err_type {index_out_of_bounds,missing_file,invalid_board};
     err_type t;
@@ -90,48 +92,4 @@ public:
 public:
     struct Impl;
     Impl* pimpl;
-
-
-    struct Cell;
-    enum Directions{
-        top_left,
-        top_right,
-        bottom_left,
-        bottom_right
-    };
-
-    struct Points{
-        int r;
-        int c;
-        Directions direction;
-        int point;
-        bool valid;
-    };
-
-    enum point{
-        nothing = 0,
-        eat_pawn = 10,
-        eat_dama = 15,
-        make_dama = 13,
-        loose = -20
-    };
-
-    void move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
-    bool old_can_move(piece matrix[8][8], int r, int c);
-    bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
-    Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
-    void old_move();
-
-    bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point);
-    Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point);
-    void last_move();
-
-    int new_coordinates(char p, int r, int c, Directions direction);
-    piece from_char_to_enum(char c);
-    char from_enum_to_char(piece p) const;
-    bool correct_playground(piece matrix[8][8]);
-    void delete_history();
-    void new_cell_history(piece matrix[8][8]);
-    void print_last_playground();
-    void print_playground();
 };
