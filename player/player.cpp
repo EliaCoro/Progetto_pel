@@ -2,7 +2,6 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
-#include <random>
 #include "player.hpp"
 
 using namespace std;
@@ -29,7 +28,7 @@ enum point{
     eat_pawn = 10,
     eat_dama = 15,
     make_dama = 13,
-    loose = -20
+    loose = -50
 };
 
 struct Cell{
@@ -56,6 +55,8 @@ struct Player::Impl{
     bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
     Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
     void old_move();
+
+    bool has_loose(int player_nymber) const;
 
     bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point);
     Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point);
@@ -378,49 +379,24 @@ struct Coordinates{
     bool valid;
 };
 
-bool Player::wins(int player_nr)const{
+bool Player::Impl::has_loose(int player_number) const{
 
+}
+
+bool Player::wins(int player_nr)const{
+    return !(this->pimpl->has_loose(player_nr));
 }
 
 bool Player::wins() const{
-
+    return !(this->pimpl->has_loose(this->pimpl->player_nr));
 }
 
 bool Player::loses(int player_nr)const{
-
+    return (this->pimpl->has_loose(player_nr));
 }
 
-bool Player::loses(){
-    if(this->pimpl->history->head) {
-        Points points[12 * 4];
-        for (int i = 0; i < 12 * 4; ++i) {
-            points[i] = {-1, -1, Directions(i%4), 0, false};
-        }
-
-        int number_coordinate = 0;
-        for (int i = 0; i < playground_size; ++i) {
-            for (int j = 0; j < playground_size; ++j){
-                if(this->pimpl->player_nr == 1 && (this->pimpl->history->tail->playground[i][j] == x || this->pimpl->history->tail->playground[i][j] == X) ||
-                   this->pimpl->player_nr == 2 && (this->pimpl->history->tail->playground[i][j] == o || this->pimpl->history->tail->playground[i][j] == O)){
-
-                    for (int k = 0; k < 4; ++k) {
-                        points[number_coordinate].r = i;
-                        points[number_coordinate].c = j;
-                        points[number_coordinate].valid = this->pimpl->last_move_to(this->pimpl->history->tail->playground, i, j,
-                                                                       points[number_coordinate].direction,
-                                                                       points[number_coordinate].point);
-                        number_coordinate++;
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < number_coordinate; ++i) {
-            if(points[i].valid)
-                return false;
-        }
-        return true;
-    }
-    return false;
+bool Player::loses() const{
+    return (this->pimpl->has_loose(this->pimpl->player_nr));
 }
 
 int Player::recurrence()const{
@@ -429,9 +405,19 @@ int Player::recurrence()const{
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
+int get_player_number(Player::piece piece){
+    if(piece == Player::x || piece == Player::X)
+        return 1;
+    else if(piece == Player::o || piece == Player::O)
+        return 2;
+    else
+        throw "Invalid piece";
+}
+
 Cell* Player::Impl::last_move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Directions direction, int& point){
     Cell* res = nullptr;
     Player::piece temp[8][8];
+    Player:: piece pezzo = matrix[r][c];
     for (int i = 0; i < playground_size; ++i)
         for (int j = 0; j < playground_size; ++j)
             temp[i][j] = matrix[i][j];
@@ -483,6 +469,8 @@ Cell* Player::Impl::last_move_pawn(Player::piece matrix[playground_size][playgro
                     point+=make_dama;
                 }
             }
+            if(this->has_loose(get_player_number(pezzo)))
+                point=loose;
         }
     }
     return res;
@@ -654,18 +642,12 @@ void Player::move() {
         int points, depth = 2;
         Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
         if(res != nullptr){
-            //cout << "print res " << res << endl;
-            //this->pimpl->print_this_playground(res->playground);
             this->pimpl->new_cell_history(res->playground);
-            //this->pimpl->print_last_playground();
             delete res;
-        } //else
-            //throw "player 1 looses";
+        }
     }
     else{
         this->pimpl->old_move();
-        //this->pimpl->print_last_playground();
-        //cout<<""<<endl;
     }
 }
 

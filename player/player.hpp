@@ -80,7 +80,7 @@ public:
 
     bool loses(int player_nr) const;
 
-    bool loses();   //const
+    bool loses() const;   //const
 
     /* return how many times the last board appeared in the past
      * for example, if the history is A B C B D C B (where A,B,C,D are distinct boards and the most recent is 'B')
