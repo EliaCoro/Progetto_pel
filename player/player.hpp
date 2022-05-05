@@ -91,4 +91,5 @@ public:
 public:
     struct Impl;
     Impl* pimpl;
+    void print_last_playground();
 };

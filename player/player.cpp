@@ -67,7 +67,7 @@ struct Player::Impl{
     bool correct_playground(piece matrix[8][8]);
     void delete_history();
     void new_cell_history(piece matrix[8][8]);
-    void print_last_playground();
+    //void print_last_playground();
     void print_playground();
     void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
 };
@@ -141,6 +141,8 @@ Player::Player(const Player& player){
 }
 
 Player& Player::operator=(const Player& player){
+
+
     //delete this;  //not working
     //this->delete_history();   //not working todo: c'è un problema di memoria alla riga successiva
     //new Player(1);    //forse è da decommentare
@@ -159,6 +161,8 @@ Player& Player::operator=(const Player& player){
 }
 
 Player::piece Player::operator()(int r, int c, int history_offset)const{
+    //modificare le pos 8-r e 8-c
+
     if(!(r >= 0 && r < playground_size && c >= 0 && c < playground_size))
         throw player_exception{player_exception::err_type(0), "Invalid coordinates"};
 
@@ -193,12 +197,12 @@ void Player::Impl::print_playground(){
     cout<<"----------------"<<endl;
 }
 
-void Player::Impl::print_last_playground(){
-    Cell* pc = this->history->tail;
+void Player::print_last_playground(){
+    Cell* pc = this->pimpl->history->tail;
     cout<<"----------------"<<endl;
     for (int i = 0; i < playground_size; ++i){
         for (int j = 0; j < playground_size; ++j)
-            cout<<from_enum_to_char(pc->playground[i][j])<<" ";
+            cout<<this->pimpl->from_enum_to_char(pc->playground[i][j])<<" ";
         cout<<endl;
     }
     cout<<"----------------"<<endl;
@@ -298,7 +302,7 @@ void Player::store_board(const string& filename, int history_offset) const{
 
 
 void Player::init_board(const string& filename)const{
-    //todo: vedere se va salvata nella history
+    //todo: vedere se va salvata nella history -> Ale dice che non serve ;)
 
     string board = "o   o   o   o  \n"
                    "  o   o   o   o\n"
@@ -630,11 +634,11 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
             Cell* last_move = last_move_pawn(matrix, points[0].r,
                                              points[0].c, points[0].direction, punteggio);
             if(last_move){
-                if(depth==2){
+                /*if(depth==2){
                     cout<<"res:  "<< last_move <<endl;
                     this->print_this_playground(last_move->playground);
 
-                }
+                }*/
                 return last_move;
             }
         }else
@@ -645,22 +649,23 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
 
 
 void Player::move() {
+    //implementare loose nel recursive
     if(this->pimpl->player_nr == 1){
         int points, depth = 2;
         Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
         if(res != nullptr){
-            cout << "print res " << res << endl;
-            this->pimpl->print_this_playground(res->playground);
+            //cout << "print res " << res << endl;
+            //this->pimpl->print_this_playground(res->playground);
             this->pimpl->new_cell_history(res->playground);
-            this->pimpl->print_last_playground();
+            //this->pimpl->print_last_playground();
             delete res;
-        } else
-            throw "player 1 looses";
+        } //else
+            //throw "player 1 looses";
     }
     else{
         this->pimpl->old_move();
-        this->pimpl->print_last_playground();
-        cout<<""<<endl;
+        //this->pimpl->print_last_playground();
+        //cout<<""<<endl;
     }
 }
 
@@ -764,6 +769,7 @@ void Player::Impl::old_move(){
 
     if(number_coordinate > 0) {
         srand( time(NULL) );
+
         int v1 = rand() % number_coordinate;
         int v2 = rand()%4;
         Cell* last_move = nullptr;
