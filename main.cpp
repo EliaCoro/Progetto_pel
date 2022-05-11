@@ -74,8 +74,8 @@ void game(){
 }
 
 int main(){
-    //game();
-    Player one(1), two(2);
+    game();
+    /*Player one(1), two(2);
 
     one.load_board("../end_game/board_1.txt");
     two.load_board("../end_game/board_1.txt");
@@ -90,5 +90,5 @@ int main(){
         cout<<endl;
 
     }
-    //cout<<one(0,0)<<endl;
+    //cout<<one(0,0)<<endl;*/
 }
