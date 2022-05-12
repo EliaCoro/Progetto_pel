@@ -2,8 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <stdlib.h>
-
+#include <cassert>
 using namespace std;
 
 struct player_exception{
@@ -80,7 +81,7 @@ public:
 
     bool loses(int player_nr) const;
 
-    bool loses() const;   //const
+    bool loses() const;
 
     /* return how many times the last board appeared in the past
      * for example, if the history is A B C B D C B (where A,B,C,D are distinct boards and the most recent is 'B')
@@ -88,8 +89,10 @@ public:
      * in the history
      */
     int recurrence() const;
-public:
+
+private:
+
     struct Impl;
     Impl* pimpl;
-    void print_last_playground();
+
 };

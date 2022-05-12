@@ -1,4 +1,4 @@
-
+//#include "player.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -13,10 +13,10 @@ using std::string;
 
 constexpr int MAX_ROUNDS = 1000;
 
-int main_verify(int argc, char **argv){
+int main(int argc, char **argv){
 
     //create new verifier
-    Player v(1);
+    Player v();
 
     cout << "Running verifier" << endl;
 
