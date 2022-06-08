@@ -13,10 +13,10 @@ using std::string;
 
 constexpr int MAX_ROUNDS = 1000;
 
-int main(int argc, char **argv){
+int main2(int argc, char **argv){
 
     //create new verifier
-    Player v();
+    Player v(1);
 
     cout << "Running verifier" << endl;
 

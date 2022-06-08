@@ -11,7 +11,7 @@ using std::endl;
 using std::ifstream;
 using std::string;
 
-int main(int argc, char **argv){
+int main3(int argc, char **argv){
 
     int player_nr = atoi(argv[1]);
     Player p(player_nr);

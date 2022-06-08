@@ -87,7 +87,8 @@ char from_enum_to_char(int i)  {
 int main(){
     //game();
     Player one(1);
-    Player two(2);
     one.load_board(path + "board_" + std::to_string(19) + ".txt");
+    Player two(one);
+    two.print_last_playground();
     one.pop();
 }
