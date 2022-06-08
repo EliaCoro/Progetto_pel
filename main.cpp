@@ -20,7 +20,7 @@ void game(){
 
     while(board <= end) {
         cout << "game: " << board++ << endl;
-        int i = 0;
+        int i = 1;
         Player one(1);
         Player two(2);
         one.init_board(path + "board_" + std::to_string(i) + ".txt");
@@ -73,22 +73,21 @@ void game(){
     cout << "mosse medie: "<<somma/board<<""<<endl;
 }
 
-int main(){
-    game();
-    /*Player one(1), two(2);
-
-    one.load_board("../end_game/board_1.txt");
-    two.load_board("../end_game/board_1.txt");
-    one.print_last_playground();
-    for (int i = 0; i < 1; ++i) {
-        one.move();
-        cout<<"main"<<endl;
-        one.print_last_playground();
-        two.move();
-        cout<<"main"<<endl;
-        two.print_last_playground();
-        cout<<endl;
-
+char from_enum_to_char(int i)  {
+    switch(i){
+        case 0: return 'x';
+        case 2: return 'X';
+        case 1: return'o';
+        case 3: return 'O';
+        case 4: return ' ';
+        default: throw "Invalid enum";
     }
-    //cout<<one(0,0)<<endl;*/
+}
+
+int main(){
+    //game();
+    Player one(1);
+    Player two(2);
+    one.load_board(path + "board_" + std::to_string(19) + ".txt");
+    one.pop();
 }
