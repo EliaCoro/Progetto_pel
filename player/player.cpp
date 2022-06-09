@@ -43,25 +43,16 @@ struct History{
     int playground_number;
 };
 
-struct Coordinates{
-    Player::piece piece;
-    int r;
-    int c;
-    bool valid;
-};
-
 struct Player::Impl{
     int player_nr;
     History* history;
-
-    void print_this_playground(piece matrix[8][8]);
 
     Cell* move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
 
     bool has_loose(int player_nymber, piece matrix[8][8], bool only_pawn_number);
 
-    bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
-    Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
+    bool possible_to_move(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
+    Cell* move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
 
     int new_coordinates(char p, int r, int c, Directions direction);
     piece from_char_to_enum(char c);
@@ -69,21 +60,8 @@ struct Player::Impl{
     bool correct_playground(piece matrix[8][8]);
     void delete_history();
     void new_cell_history(piece matrix[8][8]);
-    //void print_last_playground();
-    void print_playground();
     void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
 };
-
-void Player::Impl::print_this_playground(piece matrix[8][8]){
-    cout<<"----------------"<<endl;
-    for (int i = 0; i < playground_size; ++i){
-        for (int j = 0; j < playground_size; ++j)
-            cout<<from_enum_to_char(matrix[i][j])<<" ";
-        cout<<endl;
-    }
-    cout<<"----------------"<<endl;
-    cout<<endl<<endl<<endl;
-}
 
 Player::piece Player::Impl::from_char_to_enum(char c){
     switch(c){
@@ -186,36 +164,6 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
     }
     piece pezzo = pc->playground[7 - r][c];
     return pezzo;
-}
-
-void Player::Impl::print_playground(){
-    Cell* pc = this->history->head;
-    int counter = 0;
-    cout<<"player nr: "<<this->player_nr<<endl;
-    cout<<"----------------"<<endl;
-    while(pc){
-        cout<<"Playground nr: " <<counter++<<endl;
-        for (int i = 0; i < playground_size; ++i){
-            for (int j = 0; j < playground_size; ++j)
-                cout<<from_enum_to_char(pc->playground[i][j])<<" ";
-            cout<<endl;
-        }
-        cout<<endl<<endl<<endl;
-        pc = pc->next;
-    }
-    cout<<"----------------"<<endl;
-}
-
-void Player::print_last_playground(){
-    Cell* pc = this->pimpl->history->tail;
-    cout<<"----------------"<<endl;
-    for (int i = 0; i < playground_size; ++i){
-        for (int j = 0; j < playground_size; ++j)
-            cout<<this->pimpl->from_enum_to_char(pc->playground[i][j])<<" ";
-        cout<<endl;
-    }
-    cout<<"----------------"<<endl;
-    cout<<endl<<endl<<endl;
 }
 
 void Player::Impl::new_cell_history(Player::piece matrix[playground_size][playground_size]) {
@@ -460,7 +408,7 @@ int get_player_number(Player::piece piece){
 }
 
 
-Cell* Player::Impl::last_move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Directions direction, int& point, bool calculate_loose){
+Cell* Player::Impl::move_pawn(Player::piece matrix[playground_size][playground_size], int r, int c, Directions direction, int& point, bool calculate_loose){
     Cell* res = nullptr;
     Player::piece temp[8][8];
     Player:: piece pezzo = matrix[r][c];
@@ -523,18 +471,18 @@ Cell* Player::Impl::last_move_pawn(Player::piece matrix[playground_size][playgro
 }
 
 
-bool Player::Impl::last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose){
+bool Player::Impl::possible_to_move(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose){
     Cell* temp = nullptr;
     piece pezzo = matrix[r][c];
 
     if(matrix[r][c] == x && (direction == top_left || direction == top_right)) {
-        temp = last_move_pawn(matrix, r, c, direction, point, calculate_loose);
+        temp = move_pawn(matrix, r, c, direction, point, calculate_loose);
     }
     if(matrix[r][c] == o && (direction == bottom_left || direction == bottom_right)) {
-        temp = last_move_pawn(matrix, r, c, direction, point, calculate_loose);
+        temp = move_pawn(matrix, r, c, direction, point, calculate_loose);
     }
     if(matrix[r][c] == X || matrix[r][c] == O)
-        temp = last_move_pawn(matrix, r, c, direction, point, calculate_loose);
+        temp = move_pawn(matrix, r, c, direction, point, calculate_loose);
 
     if(temp != nullptr){
         delete temp;
@@ -557,9 +505,9 @@ void Player::Impl::init_points(int player_number, Player::piece matrix[8][8], Po
                     points[number_coordinate].r = i;
                     points[number_coordinate].c = j;
                     Player temp_player(player_number);
-                    auto temp = temp_player.pimpl->last_move_to(matrix, i, j,
-                                                 points[number_coordinate].direction,
-                                                 points[number_coordinate].point, false);
+                    auto temp = temp_player.pimpl->possible_to_move(matrix, i, j,
+                                                                    points[number_coordinate].direction,
+                                                                    points[number_coordinate].point, false);
                     points[number_coordinate].valid = temp;
                     number_coordinate++;
                 }
@@ -593,7 +541,7 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
         for (int i = 0; i < number_coordinate; ++i) {
             if(points[i].valid) {
                 int temp_points;
-                Cell *temp = last_move_pawn(matrix, points[i].r, points[i].c, points[i].direction, temp_points, true);
+                Cell *temp = move_pawn(matrix, points[i].r, points[i].c, points[i].direction, temp_points, true);
                 int temp_points2 = 0;
                 move_recursive((player_nr + 1) % 3, temp->playground, temp_points2, depth - 1);
                 points[i].point -= temp_points2 + depth;
@@ -604,8 +552,8 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
         }
         sorting(points, number_coordinate);
         if(number_coordinate > 0 && points[0].valid) {
-            Cell* last_move = last_move_pawn(matrix, points[0].r,
-                                             points[0].c, points[0].direction, punteggio, true);
+            Cell* last_move = move_pawn(matrix, points[0].r,
+                                        points[0].c, points[0].direction, punteggio, true);
             if(last_move){
                 return last_move;
             }
@@ -660,7 +608,7 @@ bool Player::valid_move() const{
     bool res = false;
     for (int i = 0; i < 4; ++i) {
         int points = 0;
-        Cell* temp = this->pimpl->last_move_pawn(matrix1, r, c, Directions(i), points, false);
+        Cell* temp = this->pimpl->move_pawn(matrix1, r, c, Directions(i), points, false);
         if(temp){
             bool temp_res = true;
             for (int i = 0; i < playground_size; ++i)

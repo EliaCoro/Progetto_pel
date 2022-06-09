@@ -92,9 +92,6 @@ public:
      */
     int recurrence() const;
 
-    //TODO: RIMUOVERE
-    void print_last_playground();
-
 private:
 
     struct Impl;
