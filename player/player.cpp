@@ -57,16 +57,11 @@ struct Player::Impl{
     void print_this_playground(piece matrix[8][8]);
 
     Cell* move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
-    bool old_can_move(piece matrix[8][8], int r, int c);
-    bool old_can_move_to(piece matrix[8][8], int r, int c, Directions direction);
-    Cell* old_move_pawn(piece matrix[8][8], int r, int c, Directions direction);
-    void old_move();
 
     bool has_loose(int player_nymber, piece matrix[8][8]);
 
     bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
     Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
-    void last_move();
 
     int new_coordinates(char p, int r, int c, Directions direction);
     piece from_char_to_enum(char c);
@@ -316,8 +311,6 @@ void Player::store_board(const string& filename, int history_offset) const{
 
 
 void Player::init_board(const string& filename)const{
-    //todo: vedere se va salvata nella history -> Ale dice che non serve ;)
-
     string board = "o   o   o   o  \n"
                    "  o   o   o   o\n"
                    "o   o   o   o  \n"
@@ -397,8 +390,6 @@ bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8]) {
         return true;
     }
     return false;
-
-
 }
 
 bool Player::wins(int player_nr)const{
@@ -417,8 +408,30 @@ bool Player::loses() const{
     return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground));
 }
 
-int Player::recurrence()const{
 
+//todo: controllare
+int Player::recurrence()const{
+    Player::piece matrix[8][8];
+    Cell* pc = this->pimpl->history->tail;
+    if(pc == nullptr)
+        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            matrix[i][j] = pc->playground[i][j];
+
+    pc = pc->prev;
+    int res = 0;
+    while(pc != nullptr){
+        bool temp_res = true;
+        for (int i = 0; i < playground_size; ++i)
+            for (int j = 0; j < playground_size; ++j)
+                if(matrix[i][j] != pc->playground[i][j])
+                    temp_res = false;
+        if(temp_res)
+            res++;
+    }
+    return res;
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
@@ -514,7 +527,6 @@ bool Player::Impl::last_move_to(piece matrix[8][8], int r, int c, Directions dir
         return true;
     }else
         return false;
-
 }
 
 
@@ -564,7 +576,6 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
         int number_coordinate = 0;
         init_points(player_number, matrix, points, number_coordinate);
 
-
         for (int i = 0; i < number_coordinate; ++i) {
             if(points[i].valid) {
                 int temp_points;
@@ -580,9 +591,7 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
                 }
             }
         }
-
         sorting(points, number_coordinate);
-
         if(number_coordinate > 0 && points[0].valid) {
             Cell* last_move = last_move_pawn(matrix, points[0].r,
                                              points[0].c, points[0].direction, punteggio, true);
@@ -599,6 +608,9 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
 
 
 void Player::move() {
+    if(!this->pimpl->history->tail)
+        throw player_exception{player_exception::err_type(0)};
+
     int points, depth = 4;
     Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
     if(res != nullptr){
@@ -607,6 +619,48 @@ void Player::move() {
     }
 }
 
-bool Player::valid_move() const{
 
+bool Player::valid_move() const{
+    Player::piece matrix1[8][8], matrix2[8][8];
+    Cell* pc = this->pimpl->history->tail->prev;
+    if(pc == nullptr)
+        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            matrix1[i][j] = pc->playground[i][j];
+
+    pc = this->pimpl->history->tail;
+    if(pc == nullptr)
+        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            matrix2[i][j] = pc->playground[i][j];
+
+    int r = -1, c = -1;
+    for (int i = 0; i < playground_size; ++i)
+        for (int j = 0; j < playground_size; ++j)
+            if(matrix1[i][j] != e && matrix2[i][j] == e){
+                r = i;
+                c = j;
+            }
+    if(r == -1 && c== -1)
+        throw player_exception{player_exception::err_type(0)};
+
+    bool res = false;
+    for (int i = 0; i < 4; ++i) {
+        int points = 0;
+        Cell* temp = this->pimpl->last_move_pawn(matrix1, r, c, Directions(i), points, false);
+        if(temp){
+            bool temp_res = true;
+            for (int i = 0; i < playground_size; ++i)
+                for (int j = 0; j < playground_size; ++j)
+                    if(matrix2[i][j] != temp->playground[i][j])
+                        temp_res = false;
+            if(temp_res)
+                res = true;
+        }
+    }
+    return res;
 }
