@@ -85,5 +85,15 @@ char from_enum_to_char(int i)  {
 }
 
 int main(){
-
+    Player one(1);
+    one.init_board(path+"/board_0.txt");
+    one.load_board(path+"/board_0.txt");
+    one.move();
+    for (int i = 7; i >= 0; --i) {
+        for (int j = 0; j < 8; ++j) {
+            cout << from_enum_to_char(one(i, j, 1))<< " ";
+        }
+        cout << endl;
+    }
+    cout << one.valid_move();
 }

@@ -184,7 +184,7 @@ Player::piece Player::operator()(int r, int c, int history_offset)const{
         if(pc == nullptr)
             throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
     }
-    piece pezzo = pc->playground[8 - r][c];
+    piece pezzo = pc->playground[7 - r][c];
     return pezzo;
 }
 
@@ -236,6 +236,7 @@ void Player::Impl::new_cell_history(Player::piece matrix[playground_size][playgr
             nc->playground[i][j] = matrix[i][j];
 }
 
+//TODO: verificare che non ci siano pezzi nelle celle bianche
 bool Player::Impl::correct_playground(Player::piece matrix[playground_size][playground_size]){
     int count_x = 0, count_o = 0, count_e = 0;
     bool correct = true;
@@ -394,19 +395,31 @@ bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8], bool
 }
 
 bool Player::wins(int player_nr)const{
-    return !(this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
+    if(this->pimpl->history->tail)
+        return !(this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
+    else
+        throw player_exception{player_exception::err_type(0)};
 }
 
 bool Player::wins() const{
-    return !(this->pimpl->has_loose(this->pimpl->player_nr, this->pimpl->history->tail->playground, true));
+    if(this->pimpl->history->tail)
+        return !(this->pimpl->has_loose(this->pimpl->player_nr, this->pimpl->history->tail->playground, true));
+    else
+        throw player_exception{player_exception::err_type(0)};
 }
 
 bool Player::loses(int player_nr)const{
-    return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
+    if(this->pimpl->history->tail)
+        return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
+    else
+    throw player_exception{player_exception::err_type(0)};
 }
 
 bool Player::loses() const{
-    return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground, true));
+    if(this->pimpl->history->tail)
+        return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground, true));
+    else
+        throw player_exception{player_exception::err_type(0)};
 }
 
 
@@ -582,10 +595,7 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
                 int temp_points;
                 Cell *temp = last_move_pawn(matrix, points[i].r, points[i].c, points[i].direction, temp_points, true);
                 int temp_points2 = 0;
-                cout<<"r: "<<points[i].r<<" c: "<<points[i].c<<endl;
-                this->print_this_playground(matrix);
                 move_recursive((player_nr + 1) % 3, temp->playground, temp_points2, depth - 1);
-                this->print_this_playground(matrix);
                 points[i].point -= temp_points2 + depth;
                 if(temp != nullptr){
                     delete temp;
@@ -597,8 +607,6 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
             Cell* last_move = last_move_pawn(matrix, points[0].r,
                                              points[0].c, points[0].direction, punteggio, true);
             if(last_move){
-                this->print_this_playground(last_move->playground);
-                cout<<"punteggio: "<<punteggio<<endl;
                 return last_move;
             }
         }else
