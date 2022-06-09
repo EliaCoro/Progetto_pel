@@ -58,7 +58,7 @@ struct Player::Impl{
 
     Cell* move_recursive(int player_nr, piece matrix[8][8], int& points, int depth);
 
-    bool has_loose(int player_nymber, piece matrix[8][8]);
+    bool has_loose(int player_nymber, piece matrix[8][8], bool only_pawn_number);
 
     bool last_move_to(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
     Cell* last_move_pawn(piece matrix[8][8], int r, int c, Directions direction, int& point, bool calculate_loose);
@@ -378,11 +378,12 @@ void Player::pop(){
         throw player_exception{player_exception::err_type(0), "history empty"};
 }
 
-bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8]) {
+bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8], bool only_pawn_number) {
     if(this->history->head) {
         Points points[12 * 4];
         int number_coordinate = 0;
-        init_points(player_number, matrix, points, number_coordinate);
+        if(!only_pawn_number)
+            init_points(player_number, matrix, points, number_coordinate);
         for (int i = 0; i < number_coordinate; ++i) {
             if(points[i].valid)
                 return false;
@@ -393,19 +394,19 @@ bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8]) {
 }
 
 bool Player::wins(int player_nr)const{
-    return !(this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground));
+    return !(this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
 }
 
 bool Player::wins() const{
-    return !(this->pimpl->has_loose(this->pimpl->player_nr, this->pimpl->history->tail->playground));
+    return !(this->pimpl->has_loose(this->pimpl->player_nr, this->pimpl->history->tail->playground, true));
 }
 
 bool Player::loses(int player_nr)const{
-    return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground));
+    return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
 }
 
 bool Player::loses() const{
-    return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground));
+    return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground, true));
 }
 
 
@@ -501,7 +502,7 @@ Cell* Player::Impl::last_move_pawn(Player::piece matrix[playground_size][playgro
                     point+=make_dama;
                 }
             }
-            if(calculate_loose && this->has_loose(get_player_number(pezzo), this->history->tail->playground))
+            if(calculate_loose && this->has_loose(get_player_number(pezzo), this->history->tail->playground, false))
                 point=win;
         }
     }

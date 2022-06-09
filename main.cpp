@@ -1,4 +1,3 @@
-#include "player/player.hpp"
 #include "test/test.h"
 #include <chrono>
 #include <thread>
@@ -86,5 +85,5 @@ char from_enum_to_char(int i)  {
 }
 
 int main(){
-    test();
+
 }
