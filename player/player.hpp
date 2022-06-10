@@ -6,14 +6,13 @@
 #include <stdlib.h>
 #include <cassert>
 
+using namespace std;
+
 struct player_exception{
     enum err_type {index_out_of_bounds,missing_file,invalid_board};
     err_type t;
     std::string msg;
 };
-
-
-using namespace std;
 
 class Player{
 

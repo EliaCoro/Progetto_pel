@@ -27,7 +27,7 @@ void game(){
 
         //one.print_playground();
 
-        while (!one.loses() && !two.loses() && i < 500) {
+       do {
             one.load_board(path + "board_" + std::to_string(i) + ".txt");
             i++;
             //cout<<"one move"<<endl;
@@ -41,21 +41,18 @@ void game(){
             two.move();
             two.store_board(path + "board_" + std::to_string(i) + ".txt");
             //two.print_last_playground();
-        }
+        } while (!one.loses() && !two.loses() && i < 500);
         if (one.loses() && two.loses()){
             cout << "i player hanno perso in " << i << " mosse" << endl;
             no_one++;
-            one.store_board("../end_game/board_"+to_string(board)+".txt");
         }
         else if (one.loses()){
             cout << "player 2 ha vinto " <<  i << " mosse" << endl;
             two_count++;
-            one.store_board("../end_game/board_"+to_string(board)+".txt");
         }
         else if (two.loses()){
             cout << "player 1 ha vinto " <<  i << " mosse" << endl;
             one_count++;
-            one.store_board("../end_game/board_"+to_string(board)+".txt");
         }else{
             no_one++;
         }
@@ -84,7 +81,23 @@ char from_enum_to_char(int i)  {
     }
 }
 
+void test_valid_move(){
+    Player one(1);
+    one.load_board(path + "board_" + std::to_string(1) + ".txt");
+    int correct = 0;
+    for (int i = 2; i <= 49; ++i) {
+        one.load_board(path + "board_" + std::to_string(i) + ".txt");
+        if(one.valid_move()){
+            correct++;
+        }else{
+            cout <<"Non passato: "<< std::to_string(i) << endl;
+        }
+    }
+}
+
 int main(){
+    //game();
+    test_valid_move();
     /*Player one(1);
     one.init_board(path+"/board_0.txt");
     one.load_board(path+"/board_0.txt");
@@ -96,5 +109,5 @@ int main(){
         cout << endl;
     }
     cout << one.valid_move();*/
-    test_valid_vac();
+
 }

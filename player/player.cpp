@@ -194,7 +194,6 @@ bool Player::Impl::correct_playground(Player::piece matrix[playground_size][play
     bool correct = true;
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j) {
-            piece temp = matrix[i][j];
             if(matrix[i][j] == x || matrix[i][j] == X)
                 count_x++;
             else if(matrix[i][j] == o || matrix[i][j] == O)
@@ -203,6 +202,20 @@ bool Player::Impl::correct_playground(Player::piece matrix[playground_size][play
                 count_e++;
             else
                 correct = false;
+        }
+    }
+    cout << endl;
+    for (int i = 0; i < playground_size; ++i) {
+        if(i % 2 == 0){
+            for (int j = 1; j < playground_size; j+=2) {
+                if(matrix[i][j] != e)
+                    correct = false;
+            }
+        }else{
+            for (int j = 0; j < playground_size; j+=2) {
+                if(matrix[i][j] != e)
+                    correct = false;
+            }
         }
     }
     return correct && count_x <= 12 && count_o <= 12;
@@ -335,8 +348,7 @@ bool Player::Impl::has_loose(int player_number, Player::piece matrix[8][8], bool
     if(this->history->head) {
         Points points[12 * 4];
         int number_coordinate = 0;
-        if(!only_pawn_number)
-            init_points(player_number, matrix, points, number_coordinate);
+        init_points(player_number, matrix, points, number_coordinate);
         for (int i = 0; i < number_coordinate; ++i) {
             if(points[i].valid)
                 return false;
@@ -364,7 +376,7 @@ bool Player::loses(int player_nr)const{
     if(this->pimpl->history->tail)
         return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
     else
-    throw player_exception{player_exception::err_type(0)};
+        throw player_exception{player_exception::err_type(0)};
 }
 
 bool Player::loses() const{
@@ -572,7 +584,7 @@ void Player::move() {
     if(!this->pimpl->history->tail)
         throw player_exception{player_exception::err_type(0)};
 
-    int points, depth = 4;
+    int points, depth = 2;
     Cell* res = this->pimpl->move_recursive(this->pimpl->player_nr, this->pimpl->history->tail->playground, points, depth);
     if(res != nullptr){
         this->pimpl->new_cell_history(res->playground);
@@ -619,7 +631,7 @@ bool Player::valid_move() const{
             }
 
     bool res = false;
-    this->pimpl->print_this_playground(matrix1);
+    //this->pimpl->print_this_playground(matrix1);
 
     for (int i = 0; i < counter; ++i) {
         if(this->pimpl->test(matrix1, matrix2, r[i], c[i]))
@@ -640,10 +652,10 @@ bool Player::Impl::test(piece matrix1[8][8], piece matrix2[8][8], int r, int c){
                     for (int j = 0; j < playground_size; ++j)
                         if(matrix2[i][j] != temp->playground[i][j])
                             temp_res = false;
-                print_this_playground(temp->playground);
+                //print_this_playground(temp->playground);
                 if(temp_res){
                     res = true;
-                    print_this_playground(temp->playground);
+                    //print_this_playground(temp->playground);
                 }
             }
         }
