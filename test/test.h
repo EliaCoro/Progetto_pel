@@ -14,7 +14,7 @@
  *
  * */
 
-
+/*
 using namespace std;
 
 bool constructor_destructor(){
@@ -140,5 +140,5 @@ void test(){
 
     cout << "Test finised ;)" << endl;
 }
-
+*/
 #endif //PROGETTO_PEL_TEST_H

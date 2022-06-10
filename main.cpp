@@ -1,4 +1,4 @@
-#include "test/test.h"
+#include "test.h"
 #include <chrono>
 #include <thread>
 #include <vector>
@@ -33,14 +33,14 @@ void game(){
             //cout<<"one move"<<endl;
             one.move();
             one.store_board(path + "board_" + std::to_string(i) + ".txt");
-            one.print_last_playground();
+            //one.print_last_playground();
 
             two.load_board(path + "board_" + std::to_string(i) + ".txt");
             i++;
             //cout<<"two move"<<endl;
             two.move();
             two.store_board(path + "board_" + std::to_string(i) + ".txt");
-            two.print_last_playground();
+            //two.print_last_playground();
         }
         if (one.loses() && two.loses()){
             cout << "i player hanno perso in " << i << " mosse" << endl;
@@ -85,7 +85,7 @@ char from_enum_to_char(int i)  {
 }
 
 int main(){
-    Player one(1);
+    /*Player one(1);
     one.init_board(path+"/board_0.txt");
     one.load_board(path+"/board_0.txt");
     one.move();
@@ -95,5 +95,6 @@ int main(){
         }
         cout << endl;
     }
-    cout << one.valid_move();
+    cout << one.valid_move();*/
+    test_valid_vac();
 }

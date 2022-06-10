@@ -61,6 +61,8 @@ struct Player::Impl{
     void delete_history();
     void new_cell_history(piece matrix[8][8]);
     void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
+
+    void print_this_playground(piece matrix[8][8]);
 };
 
 Player::piece Player::Impl::from_char_to_enum(char c){
@@ -576,9 +578,20 @@ void Player::move() {
     }
 }
 
+void Player::Impl::print_this_playground(piece matrix[8][8]){
+    cout<<"----------------"<<endl;
+    for (int i = 0; i < playground_size; ++i){
+        for (int j = 0; j < playground_size; ++j)
+            cout<<from_enum_to_char(matrix[i][j])<<" ";
+        cout<<endl;
+    }
+    cout<<"----------------"<<endl;
+    cout<<endl<<endl<<endl;
+}
 
 bool Player::valid_move() const{
     Player::piece matrix1[8][8], matrix2[8][8];
+    int r[4] = {-1,-1,-1,-1}, c[4] = {-1,-1,-1,-1}, counter = 0;
     Cell* pc = this->pimpl->history->tail->prev;
     if(pc == nullptr)
         throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
@@ -595,28 +608,35 @@ bool Player::valid_move() const{
         for (int j = 0; j < playground_size; ++j)
             matrix2[i][j] = pc->playground[i][j];
 
-    int r = -1, c = -1;
     for (int i = 0; i < playground_size; ++i)
         for (int j = 0; j < playground_size; ++j)
             if(matrix1[i][j] != e && matrix2[i][j] == e){
-                r = i;
-                c = j;
+                r[counter] = i;
+                c[counter] = j;
+                counter++;
             }
-    if(r == -1 && c== -1)
-        throw player_exception{player_exception::err_type(0)};
+
+    if(counter == 0)
+        return false;
+    this->pimpl->print_this_playground(matrix1);
 
     bool res = false;
     for (int i = 0; i < 4; ++i) {
         int points = 0;
-        Cell* temp = this->pimpl->move_pawn(matrix1, r, c, Directions(i), points, false);
-        if(temp){
-            bool temp_res = true;
-            for (int i = 0; i < playground_size; ++i)
-                for (int j = 0; j < playground_size; ++j)
-                    if(matrix2[i][j] != temp->playground[i][j])
-                        temp_res = false;
-            if(temp_res)
-                res = true;
+        if(this->pimpl->possible_to_move(matrix1, r, c, Directions(i), points, false)){
+            Cell* temp = this->pimpl->move_pawn(matrix1, r, c, Directions(i), points, false);
+            if(temp){
+                bool temp_res = true;
+                for (int i = 0; i < playground_size; ++i)
+                    for (int j = 0; j < playground_size; ++j)
+                        if(matrix2[i][j] != temp->playground[i][j])
+                            temp_res = false;
+                this->pimpl->print_this_playground(temp->playground);
+                if(temp_res){
+                    res = true;
+                    this->pimpl->print_this_playground(temp->playground);
+                }
+            }
         }
     }
     return res;
