@@ -62,6 +62,8 @@ struct Player::Impl{
     void new_cell_history(piece matrix[8][8]);
     void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
 
+    bool test(piece matrix1[8][8], piece matrix2[8][8], int r, int c);
+
     void print_this_playground(piece matrix[8][8]);
 };
 
@@ -591,6 +593,7 @@ void Player::Impl::print_this_playground(piece matrix[8][8]){
 
 bool Player::valid_move() const{
     Player::piece matrix1[8][8], matrix2[8][8];
+    int r[4] = {-1,-1,-1,-1}, c[4] = {-1,-1,-1,-1}, counter = 0;
     Cell* pc = this->pimpl->history->tail->prev;
     if(pc == nullptr)
         throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
@@ -607,32 +610,40 @@ bool Player::valid_move() const{
         for (int j = 0; j < playground_size; ++j)
             matrix2[i][j] = pc->playground[i][j];
 
-    int r = -1, c = -1;
     for (int i = 0; i < playground_size; ++i)
         for (int j = 0; j < playground_size; ++j)
             if(matrix1[i][j] != e && matrix2[i][j] == e){
-                r = i;
-                c = j;
+                r[counter] = i;
+                c[counter] = j;
+                counter++;
             }
 
-    if(r == -1 && c== -1)
-        return false;
+    bool res = false;
     this->pimpl->print_this_playground(matrix1);
 
+    for (int i = 0; i < counter; ++i) {
+        if(this->pimpl->test(matrix1, matrix2, r[i], c[i]))
+            res = true;
+    }
+    return res;
+}
+
+bool Player::Impl::test(piece matrix1[8][8], piece matrix2[8][8], int r, int c){
     bool res = false;
     for (int i = 0; i < 4; ++i) {
         int points = 0;
-        if(this->pimpl->possible_to_move(matrix1, r, c, Directions(i), points, false)){
-            Cell* temp = this->pimpl->move_pawn(matrix1, r, c, Directions(i), points, false);
+        if(possible_to_move(matrix1, r, c, Directions(i), points, false)){
+            Cell* temp = move_pawn(matrix1, r, c, Directions(i), points, false);
             if(temp){
                 bool temp_res = true;
                 for (int i = 0; i < playground_size; ++i)
                     for (int j = 0; j < playground_size; ++j)
                         if(matrix2[i][j] != temp->playground[i][j])
                             temp_res = false;
+                print_this_playground(temp->playground);
                 if(temp_res){
                     res = true;
-                    this->pimpl->print_this_playground(temp->playground);
+                    print_this_playground(temp->playground);
                 }
             }
         }

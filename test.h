@@ -146,7 +146,7 @@ void test_valid() {
     //X mangia verso il basso
     player.load_board("./valid_move/valid/test11_old.txt");
     player.load_board("./valid_move/valid/test11_new.txt");
-    //assert(player.valid_move() == 1);
+    assert(player.valid_move() == 1);
 
     //O mangia verso l'alto
     player.load_board("./valid_move/valid/test12_old.txt");
