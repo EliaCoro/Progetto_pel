@@ -591,7 +591,6 @@ void Player::Impl::print_this_playground(piece matrix[8][8]){
 
 bool Player::valid_move() const{
     Player::piece matrix1[8][8], matrix2[8][8];
-    int r[4] = {-1,-1,-1,-1}, c[4] = {-1,-1,-1,-1}, counter = 0;
     Cell* pc = this->pimpl->history->tail->prev;
     if(pc == nullptr)
         throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
@@ -608,15 +607,15 @@ bool Player::valid_move() const{
         for (int j = 0; j < playground_size; ++j)
             matrix2[i][j] = pc->playground[i][j];
 
+    int r = -1, c = -1;
     for (int i = 0; i < playground_size; ++i)
         for (int j = 0; j < playground_size; ++j)
             if(matrix1[i][j] != e && matrix2[i][j] == e){
-                r[counter] = i;
-                c[counter] = j;
-                counter++;
+                r = i;
+                c = j;
             }
 
-    if(counter == 0)
+    if(r == -1 && c== -1)
         return false;
     this->pimpl->print_this_playground(matrix1);
 
@@ -631,7 +630,6 @@ bool Player::valid_move() const{
                     for (int j = 0; j < playground_size; ++j)
                         if(matrix2[i][j] != temp->playground[i][j])
                             temp_res = false;
-                this->pimpl->print_this_playground(temp->playground);
                 if(temp_res){
                     res = true;
                     this->pimpl->print_this_playground(temp->playground);
