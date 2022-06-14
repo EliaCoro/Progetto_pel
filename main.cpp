@@ -122,3 +122,10 @@ int main(){
 
 }
 
+/*
+
+mkdir 892507
+mv player.cpp 892507
+tar -zcvf 892507.tar.gz 892507
+
+*/
