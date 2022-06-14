@@ -1,7 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <stdlib.h>
 #include "player.hpp"
 
 using namespace std;
@@ -63,8 +59,6 @@ struct Player::Impl{
     void init_points(int player_number, piece matrix[8][8], Points *points, int &number_coordinate);
 
     bool test(piece matrix1[8][8], piece matrix2[8][8], int r, int c);
-
-    void print_this_playground(piece matrix[8][8]);
 };
 
 Player::piece Player::Impl::from_char_to_enum(char c){
@@ -95,12 +89,11 @@ Player::Player(int player_nr){
         this->pimpl->player_nr = player_nr;
         this->pimpl->history = new History{nullptr, nullptr, 0};
     }else{
-        throw player_exception{player_exception::err_type(0), "Invalid Player_nr"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds), "Invalid Player_nr"};
     }
 };
 
 void Player::Impl::delete_history(){
-    this->history;
     if (this != nullptr && this->history->head != nullptr) {
         Cell *pc = this->history->head;
         while (this->history->head != nullptr) {
@@ -155,11 +148,11 @@ Player& Player::operator=(const Player& player){
 
 Player::piece Player::operator()(int r, int c, int history_offset)const{
     if(!(r >= 0 && r < playground_size && c >= 0 && c < playground_size))
-        throw player_exception{player_exception::err_type(0), "Invalid coordinates"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds), "Invalid coordinates"};
 
     Cell* pc = this->pimpl->history->tail;
     if(pc == nullptr)
-        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds), "Invalid history_offset"};
 
     for (int i = 0; i < history_offset; ++i) {
         pc = pc->prev;
@@ -188,7 +181,7 @@ void Player::Impl::new_cell_history(Player::piece matrix[playground_size][playgr
             nc->playground[i][j] = matrix[i][j];
 }
 
-//TODO: verificare che non ci siano pezzi nelle celle bianche
+
 bool Player::Impl::correct_playground(Player::piece matrix[playground_size][playground_size]){
     int count_x = 0, count_o = 0, count_e = 0;
     bool correct = true;
@@ -204,7 +197,6 @@ bool Player::Impl::correct_playground(Player::piece matrix[playground_size][play
                 correct = false;
         }
     }
-    cout << endl;
     for (int i = 0; i < playground_size; ++i) {
         if(i % 2 == 0){
             for (int j = 1; j < playground_size; j+=2) {
@@ -224,7 +216,7 @@ bool Player::Impl::correct_playground(Player::piece matrix[playground_size][play
 void Player::load_board(const string& filename){
     ifstream file{filename};
     if (!file.good())
-        throw player_exception{player_exception::err_type(1), "Missing file: "+filename};
+        throw player_exception{player_exception::err_type(player_exception::err_type::missing_file), "Missing file: "+filename};
 
     Player::piece playground[playground_size][playground_size];
     int i = 0;
@@ -232,31 +224,31 @@ void Player::load_board(const string& filename){
         string s;
         getline(file, s);
         if(s.size() != 15)
-            throw player_exception{player_exception::err_type(2), "Invalid board"};
+            throw player_exception{player_exception::err_type(player_exception::err_type::invalid_board), "Invalid board"};
         for (int j = 0; j < s.size(); j=j+2) {
             playground[i][j/2] = this->pimpl->from_char_to_enum(s.at(j));
         }
         i++;
     }
     if (!file.eof())
-        throw player_exception{player_exception::err_type(2),"We should be at the end of the file, but we are not"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::invalid_board),"We should be at the end of the file, but we are not"};
 
     if(this->pimpl->correct_playground(playground))
         this->pimpl->new_cell_history(playground);
     else
-        throw player_exception{player_exception::err_type(2), "Invalid board"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::invalid_board), "Invalid board"};
 }
 
 void Player::store_board(const string& filename, int history_offset) const{
     ofstream file(filename);
     Cell* pc = this->pimpl->history->tail;
     if(pc == nullptr)
-        throw player_exception{player_exception::err_type(0), "Invalid history_offset"};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds), "Invalid history_offset"};
 
     for (int i = 0; i < history_offset; ++i) {
         pc = pc->prev;
         if(pc == nullptr)
-            throw player_exception{player_exception::err_type(0), "Invalid board"};
+            throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds), "Invalid board"};
     }
     for (int i = 0; i < playground_size; ++i) {
         for (int j = 0; j < playground_size; ++j) {
@@ -269,10 +261,10 @@ void Player::store_board(const string& filename, int history_offset) const{
     }
 
     if(!file.good())
-        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
+        throw player_exception{player_exception::err_type(player_exception::err_type::missing_file), "Impossible to write in: "+filename};
     file.close();
     if(file.fail())
-        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
+        throw player_exception{player_exception::err_type(player_exception::err_type::missing_file), "Impossible to write in: "+filename};
 }
 
 
@@ -288,10 +280,10 @@ void Player::init_board(const string& filename)const{
     ofstream file(filename);
     file << board;
     if(!file.good())
-        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
+        throw player_exception{player_exception::err_type(player_exception::err_type::missing_file), "Impossible to write in: "+filename};
     file.close();
     if(file.fail())
-        throw player_exception{player_exception::err_type(1), "Impossible to write in: "+filename};
+        throw player_exception{player_exception::err_type(player_exception::err_type::missing_file), "Impossible to write in: "+filename};
 }
 
 int Player::Impl::new_coordinates(char p, int r, int c, Directions direction) {
@@ -362,32 +354,31 @@ bool Player::wins(int player_nr)const{
     if(this->pimpl->history->tail)
         return !(this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
     else
-        throw player_exception{player_exception::err_type(0)};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds)};
 }
 
 bool Player::wins() const{
     if(this->pimpl->history->tail)
         return !(this->pimpl->has_loose(this->pimpl->player_nr, this->pimpl->history->tail->playground, true));
     else
-        throw player_exception{player_exception::err_type(0)};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds)};
 }
 
 bool Player::loses(int player_nr)const{
     if(this->pimpl->history->tail)
         return (this->pimpl->has_loose(player_nr, this->pimpl->history->tail->playground, true));
     else
-        throw player_exception{player_exception::err_type(0)};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds)};
 }
 
 bool Player::loses() const{
     if(this->pimpl->history->tail)
         return (this->pimpl->has_loose(this->pimpl->player_nr,this->pimpl->history->tail->playground, true));
     else
-        throw player_exception{player_exception::err_type(0)};
+        throw player_exception{player_exception::err_type(player_exception::err_type::index_out_of_bounds)};
 }
 
 
-//todo: controllare
 int Player::recurrence()const{
     Player::piece matrix[8][8];
     Cell* pc = this->pimpl->history->tail;
@@ -576,9 +567,8 @@ Cell* Player::Impl::move_recursive(int player_number, Player::piece matrix[8][8]
         }else
             return nullptr;
     }
+    return nullptr;
 }
-
-
 
 void Player::move() {
     if(!this->pimpl->history->tail)
@@ -590,17 +580,6 @@ void Player::move() {
         this->pimpl->new_cell_history(res->playground);
         delete res;
     }
-}
-
-void Player::Impl::print_this_playground(piece matrix[8][8]){
-    cout<<"----------------"<<endl;
-    for (int i = 0; i < playground_size; ++i){
-        for (int j = 0; j < playground_size; ++j)
-            cout<<from_enum_to_char(matrix[i][j])<<" ";
-        cout<<endl;
-    }
-    cout<<"----------------"<<endl;
-    cout<<endl<<endl<<endl;
 }
 
 bool Player::valid_move() const{
@@ -631,7 +610,6 @@ bool Player::valid_move() const{
             }
 
     bool res = false;
-    //this->pimpl->print_this_playground(matrix1);
 
     for (int i = 0; i < counter; ++i) {
         if(this->pimpl->test(matrix1, matrix2, r[i], c[i]))
@@ -652,10 +630,8 @@ bool Player::Impl::test(piece matrix1[8][8], piece matrix2[8][8], int r, int c){
                     for (int j = 0; j < playground_size; ++j)
                         if(matrix2[i][j] != temp->playground[i][j])
                             temp_res = false;
-                //print_this_playground(temp->playground);
                 if(temp_res){
                     res = true;
-                    //print_this_playground(temp->playground);
                 }
             }
         }
