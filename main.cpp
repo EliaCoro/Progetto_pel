@@ -101,13 +101,30 @@ void test_valid_move(){
 
 int main(){
     //game();
-    try{
-    Player a(2);
-    a.init_board(path + "init.txt");
-    a.load_board("");
-    }catch(player_exception& e){
-        cout << e.t << endl;
-    }
+
+        Player a(2);
+        a.init_board(path+"init.txt");
+        a.load_board(path+"init.txt");
+        for (int i = 0; i < 20; ++i) {
+            a.move();
+            a.store_board(path+"board_" + std::to_string(i) + ".txt");
+        }
+
+        for (int i = 0; i < 20; ++i) {
+            a.load_board(path+ + "board_" + std::to_string(i) + ".txt");
+        }
+
+        Player b(1);
+        for (int i = 0; i < 1011; ++i) {
+            for (int j = 0; j < 20; ++j) {
+                b.load_board(path+"board_"+std::to_string(j) + ".txt");
+            }
+        }
+
+        cout << b.recurrence() << endl;
+        cout << a.recurrence() << endl;
+
+
     /*Player one(1);
     one.init_board(path+"/board_0.txt");
     one.load_board(path+"/board_0.txt");

@@ -390,7 +390,7 @@ int Player::recurrence()const{
             matrix[i][j] = pc->playground[i][j];
 
     pc = pc->prev;
-    int res = 0;
+    int res = 1;
     while(pc != nullptr){
         bool temp_res = true;
         for (int i = 0; i < playground_size; ++i)
@@ -399,6 +399,7 @@ int Player::recurrence()const{
                     temp_res = false;
         if(temp_res)
             res++;
+        pc = pc->prev;
     }
     return res;
 }
